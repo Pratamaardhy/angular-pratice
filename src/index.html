@@ -6,6 +6,39 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- Script Tailwind CSS dengan Plugin -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  
+  <!-- Google Material Symbols & Font Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Konfigurasi Warna Kustom Tailwind -->
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#00236f",
+            "primary-container": "#1e3a8a",
+            secondary: "#006c49",
+            background: "#f8f9ff",
+            surface: "#f8f9ff",
+            "on-background": "#0b1c30",
+            "on-surface": "#0b1c30",
+            "on-surface-variant": "#444651",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#eff4ff",
+            "surface-container-high": "#dce9ff",
+            "outline-variant": "#c5c5d3",
+            outline: "#757682",
+          }
+        }
+      }
+    }
+  </script>
 </head>
 <body>
   <app-root></app-root>

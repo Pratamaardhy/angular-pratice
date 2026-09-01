@@ -1,0 +1,302 @@
+<div class="p-2 font-['Inter']">
+  <!-- Header Section -->
+  <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div>
+      <h2 class="text-3xl font-bold text-[#00236f] tracking-tight">
+        Persetujuan Limit Pembiayaan (BM)
+      </h2>
+      <p class="text-xs text-[#444651] mt-1">
+        Evaluasi keputusan persetujuan akhir pengajuan pinjaman (sultan.trx_loan_applications)
+      </p>
+    </div>
+  </div>
+
+  <!-- Activity List / Table Section -->
+  <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 mb-8">
+    <!-- Toolbar Search -->
+    <div
+      class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b border-[#c5c5d3]/30 gap-4"
+    >
+      <div class="relative w-full md:w-80">
+        <span
+          class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400"
+        >
+          <span class="material-symbols-outlined text-[18px]">search</span>
+        </span>
+        <input
+          type="text"
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)"
+          placeholder="Cari No Pengajuan, NIK, nama nasabah..."
+          class="w-full pl-9 pr-4 py-2 text-xs border border-[#c5c5d3] rounded-lg focus:outline-none focus:border-[#00236f]"
+        />
+      </div>
+
+      <span class="text-xs text-[#444651] font-medium">
+        Total: {{ filteredQueue().length }} Antrean Approval
+      </span>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="text-xs text-[#444651] border-b border-[#d3e4fe] font-medium">
+            <th class="pb-3 pl-2">No. Pengajuan</th>
+            <th class="pb-3">Nasabah</th>
+            <th class="pb-3">Produk & Plafond</th>
+            <th class="pb-3">Catatan Marketing</th>
+            <th class="pb-3 text-right pr-2">Aksi (Actions)</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm text-[#0b1c30]">
+          <tr
+            *ngFor="let item of filteredQueue()"
+            class="border-b border-[#d3e4fe] hover:bg-[#f8f9ff] transition-colors group"
+          >
+            <!-- No Pengajuan -->
+            <td class="py-3 pl-2">
+              <div class="flex flex-col">
+                <span
+                  class="font-bold text-[#00236f] text-xs cursor-pointer hover:underline"
+                  (click)="openDetailModal(item)"
+                >
+                  {{ item.loanApplicationNo }}
+                </span>
+                <span class="text-[10px] text-[#444651]">{{ item.createdAt }}</span>
+              </div>
+            </td>
+
+            <!-- Nasabah -->
+            <td class="py-3">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 rounded-full bg-[#dce9ff] flex items-center justify-center text-[#444651] text-xs font-bold"
+                >
+                  {{ item.customerName.charAt(0).toUpperCase() }}
+                </div>
+                <div class="flex flex-col">
+                  <span class="font-medium text-[#0b1c30] text-xs">{{ item.customerName }}</span>
+                  <span class="text-[10px] text-[#444651]">NIK: {{ item.customerNik }}</span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Produk & Plafond -->
+            <td class="py-3">
+              <div class="flex flex-col">
+                <span class="font-bold text-emerald-700 text-xs">
+                  {{ item.amount | currency: 'IDR' : 'symbol' : '1.0-0' }}
+                </span>
+                <span class="text-[10px] text-[#444651]"
+                  >{{ item.productName }} ({{ item.tenorMonths }} Bln)</span
+                >
+              </div>
+            </td>
+
+            <!-- Catatan Marketing -->
+            <td class="py-3 max-w-xs">
+              <p class="text-xs text-gray-700 italic border-l-2 border-blue-500 pl-2 line-clamp-2">
+                "{{ item.marketingNotes }}"
+              </p>
+              <span class="text-[10px] text-gray-400 block mt-0.5"
+                >oleh {{ item.marketingReviewerName }}</span
+              >
+            </td>
+
+            <!-- Action Buttons Only Icons -->
+            <td class="py-3 text-right pr-2">
+              <div class="flex items-center justify-end gap-1">
+                <!-- Detail -->
+                <button
+                  (click)="openDetailModal(item)"
+                  title="Lihat Detail Profil & Dokumen"
+                  class="p-1.5 text-[#444651] hover:text-[#00236f] rounded hover:bg-gray-100"
+                >
+                  <span class="material-symbols-outlined text-[18px]">visibility</span>
+                </button>
+
+                <!-- Approve BM -->
+                <button
+                  (click)="openActionModal(item, 'APPROVE')"
+                  title="Approve Pinjaman (BM)"
+                  class="p-1.5 text-emerald-600 hover:text-emerald-800 rounded hover:bg-emerald-50"
+                >
+                  <span class="material-symbols-outlined text-[18px]">verified</span>
+                </button>
+
+                <!-- Reject BM -->
+                <button
+                  (click)="openActionModal(item, 'REJECT')"
+                  title="Tolak Pinjaman"
+                  class="p-1.5 text-rose-600 hover:text-rose-800 rounded hover:bg-rose-50"
+                >
+                  <span class="material-symbols-outlined text-[18px]">cancel</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredQueue().length === 0">
+            <td colspan="5" class="text-center py-8 text-[#444651] text-xs">
+              Tidak ada data antrean persetujuan BM yang ditemukan.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL DETAIL PROFIL BM -->
+  <div
+    *ngIf="isDetailModalOpen() && selectedItem(); let detail"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+  >
+    <div
+      class="bg-white rounded-xl shadow-xl max-w-4xl w-full border border-[#c5c5d3]/40 flex flex-col max-h-[90vh] overflow-hidden"
+    >
+      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50">
+        <div>
+          <h3 class="text-base font-bold text-[#00236f]">Detail Persetujuan Branch Manager</h3>
+          <p class="text-[11px] text-[#444651]">No. Pengajuan: {{ detail.loanApplicationNo }}</p>
+        </div>
+        <button (click)="closeDetailModal()" class="text-gray-400 hover:text-gray-600">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <div class="flex flex-col md:flex-row flex-1 overflow-y-auto">
+        <div class="w-full md:w-1/2 p-5 border-r border-gray-100 space-y-3 text-xs text-[#0b1c30]">
+          <!-- Catatan Marketing -->
+          <div class="bg-amber-50 p-3 rounded-lg border border-amber-200 space-y-1">
+            <span class="text-[10px] font-bold text-amber-900 uppercase"
+              >Catatan Review Marketing:</span
+            >
+            <p class="text-xs text-amber-950 italic">"{{ detail.marketingNotes }}"</p>
+            <span class="text-[10px] text-amber-800 block"
+              >— {{ detail.marketingReviewerName }}</span
+            >
+          </div>
+
+          <h4 class="font-bold text-[#00236f] uppercase text-[11px] tracking-wider border-b pb-1">
+            Biodata Customer
+          </h4>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <span class="text-gray-500 block">Nama:</span
+              ><strong>{{ detail.customerName }}</strong>
+            </div>
+            <div>
+              <span class="text-gray-500 block">NIK:</span><strong>{{ detail.customerNik }}</strong>
+            </div>
+          </div>
+
+          <h4
+            class="font-bold text-[#00236f] uppercase text-[11px] tracking-wider border-b pb-1 pt-2"
+          >
+            Finansial & Rekening
+          </h4>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <span class="text-gray-500 block">Pekerjaan:</span
+              ><span>{{ detail.occupation }}</span>
+            </div>
+            <div>
+              <span class="text-gray-500 block">Penghasilan:</span
+              ><strong class="text-emerald-700">{{
+                detail.monthlyIncome | currency: 'IDR' : 'symbol' : '1.0-0'
+              }}</strong>
+            </div>
+            <div>
+              <span class="text-gray-500 block">Rekening Bank:</span
+              ><span>{{ detail.bankName }} - {{ detail.accountNumber }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full md:w-1/2 p-5 bg-gray-900 text-white flex flex-col justify-between">
+          <div>
+            <span class="text-xs text-gray-400 font-bold block mb-2">Dokumen Disubmit</span>
+            <div class="flex items-center justify-center bg-black/60 rounded-lg p-2 min-h-[220px]">
+              <img
+                *ngIf="previewDocument(); let activeDoc"
+                [src]="activeDoc.documentUrl"
+                [alt]="activeDoc.documentName"
+                class="max-h-[250px] object-contain rounded"
+              />
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-800">
+            <button
+              (click)="closeDetailModal()"
+              class="px-4 py-2 bg-gray-700 text-white text-xs rounded-lg hover:bg-gray-600"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FORM ACTION BM -->
+  <div
+    *ngIf="isActionModalOpen()"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+  >
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 border border-[#c5c5d3]/40">
+      <h3 class="text-lg font-bold text-[#00236f] mb-4 pb-2 border-b">
+        {{ modalTitle }}
+      </h3>
+
+      <div
+        *ngIf="selectedItem(); let target"
+        class="bg-gray-50 p-3 rounded-lg text-xs space-y-1 mb-4 border"
+      >
+        <div><strong>No. Pengajuan:</strong> {{ target.loanApplicationNo }}</div>
+        <div><strong>Nasabah:</strong> {{ target.customerName }}</div>
+        <div>
+          <strong>Plafond:</strong> {{ target.amount | currency: 'IDR' : 'symbol' : '1.0-0' }}
+        </div>
+      </div>
+
+      <form [formGroup]="approvalForm" (ngSubmit)="submitApproval()" class="space-y-3">
+        <div>
+          <label class="text-xs font-bold text-[#444651] block mb-1"
+            >Catatan Keputusan Branch Manager *</label
+          >
+          <textarea
+            formControlName="notes"
+            rows="3"
+            placeholder="Masukkan instruksi persetujuan atau alasan penolakan..."
+            class="w-full px-3 py-2 text-xs border border-[#c5c5d3] rounded-lg focus:outline-none focus:border-[#00236f]"
+          ></textarea>
+          <p
+            *ngIf="approvalForm.controls.notes.touched && approvalForm.controls.notes.invalid"
+            class="text-[10px] text-red-600 mt-1"
+          >
+            Catatan keputusan wajib diisi minimal 5 karakter.
+          </p>
+        </div>
+
+        <div class="flex justify-end gap-2 mt-6">
+          <button
+            type="button"
+            (click)="closeActionModal()"
+            class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-200"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            [disabled]="isSubmitting()"
+            class="px-4 py-2 bg-[#00236f] text-white text-xs font-medium rounded-lg hover:bg-opacity-90 disabled:opacity-50"
+          >
+            {{ isSubmitting() ? 'Memproses...' : 'Simpan Keputusan' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

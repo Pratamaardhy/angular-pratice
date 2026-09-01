@@ -1,0 +1,346 @@
+<div>
+  <!-- Toast Notification -->
+  <div
+    *ngIf="showSuccessToast()"
+    class="fixed top-5 right-5 z-50 flex items-center gap-2 bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-lg text-xs font-medium transition-all"
+  >
+    <span class="material-symbols-outlined text-[20px]">check_circle</span>
+    <span>Hak akses staf berhasil diperbarui!</span>
+  </div>
+
+  <!-- Header Section -->
+  <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div>
+      <h2 class="text-3xl font-bold text-[#00236f] tracking-tight">Hak Akses Staf (RBAC)</h2>
+      <p class="text-xs text-[#444651] mt-1">
+        Kelola perizinan aksi dan otorisasi granular untuk setiap akun staf
+      </p>
+    </div>
+  </div>
+
+  <!-- Activity List / Table Section -->
+  <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 mb-8">
+    <!-- Toolbar: Search, Filter Role, Total & Filter Active -->
+    <div
+      class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b border-[#c5c5d3]/30 gap-4"
+    >
+      <!-- Input Search & Select Filter Role Group -->
+      <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+        <!-- Search Input -->
+        <div class="relative w-full sm:w-64">
+          <span
+            class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400"
+          >
+            <span class="material-symbols-outlined text-[18px]">search</span>
+          </span>
+          <input
+            type="text"
+            [value]="searchQuery()"
+            (input)="onSearchInput($event)"
+            placeholder="Cari nama, NIP, username..."
+            class="w-full pl-9 pr-4 py-2 text-xs border border-[#c5c5d3] rounded-lg focus:outline-none focus:border-[#00236f]"
+          />
+        </div>
+
+        <!-- Filter Dropdown Role -->
+        <div class="w-full sm:w-auto">
+          <select
+            [value]="selectedRoleFilter()"
+            (change)="onRoleFilterChange($event)"
+            class="w-full sm:w-auto px-3 py-2 text-xs border border-[#c5c5d3] rounded-lg focus:outline-none focus:border-[#00236f] bg-white text-[#0b1c30] font-medium"
+          >
+            <option value="ALL">Semua Role</option>
+            <option value="SUPERADMIN">SUPER ADMIN</option>
+            <option value="MARKETING">MARKETING</option>
+            <option value="BRANCH_MANAGER">BRANCH MANAGER</option>
+            <option value="BACKOFFICE">BACKOFFICE</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+        <span class="text-xs text-[#444651] font-medium">
+          Total: {{ filteredStaff().length }} Staf
+        </span>
+
+        <!-- Tombol Trigger Filter Active -->
+        <button
+          (click)="toggleFilter()"
+          [ngClass]="isFilteredActive() ? 'bg-[#00236f] text-white' : 'bg-[#dce9ff] text-[#0b1c30]'"
+          class="px-4 py-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 border border-[#c5c5d3]"
+        >
+          <span class="material-symbols-outlined text-[18px]">filter_list</span>
+          {{ isFilteredActive() ? 'Showing: Active Only' : 'Filter: Show Active' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="text-xs text-[#444651] border-b border-[#d3e4fe] font-medium">
+            <th class="pb-3 pl-2">No. Staf / NIP</th>
+            <th class="pb-3">Nama Lengkap & Username</th>
+            <th class="pb-3">Role / Tipe Pengguna</th>
+            <th class="pb-3">Status</th>
+            <th class="pb-3 text-center">Total Izin Akses</th>
+            <th class="pb-3 text-right pr-2">Aksi (Actions)</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm text-[#0b1c30]">
+          <!-- Paginated & Filtered Rendering -->
+          <tr
+            *ngFor="let staff of paginatedStaff()"
+            class="border-b border-[#d3e4fe] hover:bg-[#f8f9ff] transition-colors group"
+          >
+            <td class="py-3 pl-2 font-mono text-xs font-semibold text-[#444651]">
+              {{ staff.employee_no }}
+            </td>
+
+            <td class="py-3">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 rounded-full bg-[#dce9ff] flex items-center justify-center text-[#444651] text-xs font-bold"
+                >
+                  {{ staff.full_name.charAt(0).toUpperCase() }}
+                </div>
+                <div class="flex flex-col">
+                  <span
+                    class="font-medium text-[#00236f] cursor-pointer hover:underline"
+                    (click)="openDetailModal(staff)"
+                  >
+                    {{ staff.full_name }}
+                  </span>
+                  <span class="text-[10px] text-[#444651]">&#64;{{ staff.username }}</span>
+                </div>
+              </div>
+            </td>
+
+            <td class="py-3">
+              <span
+                class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200"
+              >
+                {{ staff.user_type }}
+              </span>
+            </td>
+
+            <td class="py-3">
+              <span
+                [ngClass]="{
+                  'bg-emerald-50 text-emerald-700 border-emerald-200': staff.status === 'ACTIVE',
+                  'bg-amber-50 text-amber-700 border-amber-200': staff.status === 'INACTIVE',
+                  'bg-rose-50 text-rose-700 border-rose-200': staff.status === 'LOCKED',
+                }"
+                class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border"
+              >
+                {{ staff.status }}
+              </span>
+            </td>
+
+            <td class="py-3 text-center">
+              <span
+                class="font-bold text-[11px] text-[#00236f] bg-[#dce9ff]/60 px-2.5 py-1 rounded-lg"
+              >
+                {{ staff.assigned_permissions.length }} Izin Aktif
+              </span>
+            </td>
+
+            <!-- Tombol Aksi -->
+            <td class="py-3 text-right pr-2">
+              <div class="flex items-center justify-end gap-1">
+                <button
+                  (click)="openDetailModal(staff)"
+                  title="Detail & Edit Akses"
+                  class="px-3 py-1.5 bg-[#00236f] text-white rounded-lg text-xs font-medium hover:bg-opacity-90 transition-colors inline-flex items-center gap-1 shadow-sm"
+                >
+                  <span class="material-symbols-outlined text-[16px]">tune</span>
+                  Detail & Edit Akses
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Pesan jika data kosong -->
+          <tr *ngIf="paginatedStaff().length === 0">
+            <td colspan="6" class="text-center py-8 text-[#444651]">
+              Tidak ada data staf yang ditemukan.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div
+      class="flex flex-col sm:flex-row items-center justify-between mt-4 pt-3 border-t border-[#c5c5d3]/30 gap-3 text-xs text-[#444651]"
+    >
+      <div>
+        Menampilkan halaman <span class="font-bold">{{ currentPage() }}</span> dari
+        <span class="font-bold">{{ totalPages() }}</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <button
+          (click)="changePage(currentPage() - 1)"
+          [disabled]="currentPage() === 1"
+          class="px-3 py-1 bg-gray-100 rounded-lg disabled:opacity-50 hover:bg-gray-200 transition-colors"
+        >
+          Previous
+        </button>
+        <button
+          *ngFor="let page of [].constructor(totalPages()); let i = index"
+          (click)="changePage(i + 1)"
+          [ngClass]="
+            currentPage() === i + 1
+              ? 'bg-[#00236f] text-white'
+              : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+          "
+          class="px-3 py-1 rounded-lg transition-colors font-medium"
+        >
+          {{ i + 1 }}
+        </button>
+        <button
+          (click)="changePage(currentPage() + 1)"
+          [disabled]="currentPage() === totalPages()"
+          class="px-3 py-1 bg-gray-100 rounded-lg disabled:opacity-50 hover:bg-gray-200 transition-colors"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL DETAIL & CHECKLIST PERMISSION STAFF ==================== -->
+  <div
+    *ngIf="isDetailModalOpen() && selectedStaff()"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+  >
+    <div
+      class="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col border border-[#c5c5d3]/40"
+    >
+      <!-- Modal Header -->
+      <div class="p-5 border-b flex justify-between items-center bg-white rounded-t-xl">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-bold text-[#00236f]">Pengaturan Hak Akses Staf</h3>
+            <span
+              class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200 uppercase"
+            >
+              {{ selectedStaff()?.user_type }}
+            </span>
+          </div>
+          <p class="text-xs text-[#444651] mt-0.5">
+            {{ selectedStaff()?.full_name }} ({{ selectedStaff()?.employee_no }})
+          </p>
+        </div>
+
+        <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Checklist Akses per Modul) -->
+      <div class="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+        <!-- Info Alert Default Preset -->
+        <div
+          class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-[#dce9ff]/40 border border-[#c5c5d3]/50 rounded-xl gap-2"
+        >
+          <div class="flex items-center gap-2 text-[#0b1c30]">
+            <span class="material-symbols-outlined text-[20px] text-[#00236f]">info</span>
+            <span
+              >Checklist telah terisi otomatis sesuai preset default Role
+              <strong>{{ selectedStaff()?.user_type }}</strong
+              >.</span
+            >
+          </div>
+
+          <button
+            (click)="applyDefaultRolePreset()"
+            class="px-2.5 py-1 bg-white text-[#00236f] border border-[#00236f]/30 rounded-lg text-[11px] font-bold hover:bg-gray-50 self-start sm:self-auto"
+          >
+            Reset ke Default Role
+          </button>
+        </div>
+
+        <!-- Group Checklist Per Modul -->
+        <div
+          *ngFor="let mod of modules()"
+          class="border border-[#c5c5d3]/50 rounded-xl p-4 space-y-3 bg-white"
+        >
+          <h4
+            class="font-bold text-[#00236f] uppercase tracking-wider text-[11px] flex items-center gap-2"
+          >
+            <span class="material-symbols-outlined text-[16px]">folder</span>
+            {{ mod }}
+          </h4>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            <label
+              *ngFor="let perm of getPermissionsByModule(mod)"
+              class="flex items-start justify-between p-2.5 rounded-lg border border-[#c5c5d3]/30 bg-gray-50/50 hover:bg-[#f8f9ff] cursor-pointer transition-colors"
+            >
+              <div class="flex flex-col pr-2">
+                <span class="font-semibold text-[#0b1c30]">{{ perm.permission_name }}</span>
+                <span class="text-[10px] text-[#444651] font-mono">{{ perm.permission_code }}</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span
+                  [ngClass]="{
+                    'bg-green-50 text-green-700 border-green-200': perm.action === 'CREATE',
+                    'bg-blue-50 text-blue-700 border-blue-200': perm.action === 'READ',
+                    'bg-amber-50 text-amber-700 border-amber-200': perm.action === 'UPDATE',
+                    'bg-rose-50 text-rose-700 border-rose-200': perm.action === 'DELETE',
+                    'bg-purple-50 text-purple-700 border-purple-200': perm.action === 'APPROVE',
+                  }"
+                  class="px-1.5 py-0.5 text-[8px] font-bold rounded border uppercase"
+                >
+                  {{ perm.action }}
+                </span>
+
+                <input
+                  type="checkbox"
+                  [checked]="hasPermission(perm.id)"
+                  (change)="togglePermission(perm.id)"
+                  class="h-4 w-4 rounded border-gray-300 text-[#00236f] focus:ring-[#00236f] cursor-pointer"
+                />
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t bg-gray-50 rounded-b-xl flex justify-between items-center">
+        <span
+          *ngIf="hasUnsavedChanges()"
+          class="text-amber-600 font-semibold text-xs flex items-center gap-1"
+        >
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span> Ada perubahan belum disimpan
+        </span>
+        <span *ngIf="!hasUnsavedChanges()" class="text-[#444651] text-xs">
+          Belum ada perubahan
+        </span>
+
+        <div class="flex gap-2">
+          <button
+            (click)="closeModal()"
+            class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-200"
+          >
+            Batal
+          </button>
+          <button
+            (click)="saveStaffPermissions()"
+            [disabled]="isSaving() || !hasUnsavedChanges()"
+            class="px-4 py-2 bg-[#00236f] text-white text-xs font-medium rounded-lg hover:bg-opacity-90 disabled:opacity-50 flex items-center gap-1.5"
+          >
+            <span *ngIf="isSaving()" class="material-symbols-outlined text-[16px] animate-spin"
+              >progress_activity</span
+            >
+            <span>{{ isSaving() ? 'Menyimpan...' : 'Simpan Hak Akses' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,104 @@
+<div>
+  <!-- Header Section -->
+  <div class="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+    <div>
+      <h2 class="text-3xl font-bold text-[#00236f] tracking-tight">Overview</h2>
+    </div>
+  </div>
+
+  <!-- Metrics Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 flex flex-col gap-2">
+      <p class="text-xs text-[#444651] uppercase font-medium">Total Active Loans</p>
+      <h3 class="text-2xl font-bold text-[#0b1c30]">1,248</h3>
+    </div>
+    <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 flex flex-col gap-2">
+      <p class="text-xs text-[#444651] uppercase font-medium">Total Disbursed</p>
+      <h3 class="text-2xl font-bold text-[#0b1c30]">Rp 4.5B</h3>
+    </div>
+    <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 flex flex-col gap-2">
+      <p class="text-xs text-[#444651] uppercase font-medium">Pending Reviews</p>
+      <h3 class="text-2xl font-bold text-[#0b1c30]">86</h3>
+    </div>
+    <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 flex flex-col gap-2">
+      <p class="text-xs text-[#444651] uppercase font-medium">Total Users</p>
+      <h3 class="text-2xl font-bold text-[#0b1c30]">15,420</h3>
+    </div>
+  </div>
+
+  <!-- Recent Activity List dengan Computed Filter -->
+  <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 mb-8">
+    <div
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-[#c5c5d3]/30 gap-4"
+    >
+      <h3 class="text-lg font-bold text-[#0b1c30]">Recent Loan Applications</h3>
+
+      <!-- Tombol Trigger Computed Filter (Menggunakan isFilteredByPending()) -->
+      <button
+        (click)="toggleFilter()"
+        [ngClass]="
+          isFilteredByPending() ? 'bg-[#00236f] text-white' : 'bg-[#dce9ff] text-[#0b1c30]'
+        "
+        class="px-4 py-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 border border-[#c5c5d3]"
+      >
+        <span class="material-symbols-outlined text-[18px]">filter_list</span>
+        {{ isFilteredByPending() ? 'Showing: Pending Only' : 'Filter: Show Pending' }}
+      </button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="text-xs text-[#444651] border-b border-[#d3e4fe] font-medium">
+            <th class="pb-3 pl-2">Applicant ID</th>
+            <th class="pb-3">Amount</th>
+            <th class="pb-3">Category</th>
+            <th class="pb-3">Date</th>
+            <th class="pb-3">Status</th>
+            <th class="pb-3 text-right pr-2">Action</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm text-[#0b1c30]">
+          <!-- 4. Menggunakan Computed Variable sebagai fungsi: filteredLoans() -->
+          <tr
+            *ngFor="let loan of filteredLoans()"
+            class="border-b border-[#d3e4fe] hover:bg-[#f8f9ff] transition-colors group"
+          >
+            <td class="py-3 pl-2">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 rounded-full bg-[#dce9ff] flex items-center justify-center text-[#444651] text-xs font-bold"
+                >
+                  {{ loan.initials }}
+                </div>
+                <span class="font-medium text-[#00236f]">{{ loan.id }}</span>
+              </div>
+            </td>
+            <td class="py-3 font-medium">{{ loan.amount }}</td>
+            <td class="py-3 text-[#444651]">{{ loan.category }}</td>
+            <td class="py-3 text-[#444651]">{{ loan.date }}</td>
+            <td class="py-3">
+              <span
+                class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#6e2d00]/10 text-[#6e2d00] border border-[#6e2d00]/20"
+              >
+                {{ loan.status }}
+              </span>
+            </td>
+            <td class="py-3 text-right pr-2">
+              <button class="p-1 text-[#444651] hover:text-[#00236f]">
+                <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+              </button>
+            </td>
+          </tr>
+
+          <!-- Pesan jika data kosong setelah difilter -->
+          <tr *ngIf="filteredLoans().length === 0">
+            <td colspan="6" class="text-center py-8 text-[#444651]">
+              Tidak ada data dengan status Pending.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

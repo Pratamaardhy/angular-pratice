@@ -1,0 +1,134 @@
+<div class="relative min-h-screen">
+  <!-- Header Section -->
+  <div class="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+    <div>
+      <h2 class="text-3xl font-bold text-[#00236f] tracking-tight">Daftar JSONPlaceholder</h2>
+      <p class="text-sm text-[#444651] mt-1">
+        Demonstrasi Angular RxJS Store Pattern & Interactive Modal
+      </p>
+    </div>
+  </div>
+
+  <!-- Handling Error State -->
+  <div
+    *ngIf="error$ | async as errorMsg"
+    class="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm"
+  >
+    <span class="font-bold">Error:</span> {{ errorMsg }}
+  </div>
+
+  <!-- Table Card List dengan Efek Loading di Kursor (cursor-wait) -->
+  <div
+    [ngClass]="{ 'cursor-wait opacity-80': loading$ | async }"
+    class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 mb-8 transition-opacity"
+  >
+    <div
+      class="flex flex-col sm:flex-row justify-between items-center mb-4 pb-3 border-b border-[#c5c5d3]/30 gap-4"
+    >
+      <h3 class="text-lg font-bold text-[#0b1c30]">Daftar API Post</h3>
+
+      <!-- Info kecil saat sedang proses memuat data di background -->
+      <div
+        *ngIf="loading$ | async"
+        class="text-xs text-[#00236f] font-medium flex items-center gap-1.5 animate-pulse"
+      >
+        <span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+        Memuat...
+      </div>
+    </div>
+
+    <div class="overflow-x-auto max-h-[550px]">
+      <table class="w-full text-left border-collapse">
+        <thead class="sticky top-0 bg-white">
+          <tr class="text-xs text-[#444651] border-b border-[#d3e4fe] font-medium">
+            <th class="pb-3 pl-2">Post ID</th>
+            <th class="pb-3">User ID</th>
+            <th class="pb-3">Title</th>
+            <th class="pb-3 text-right pr-2">Action</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm text-[#0b1c30]">
+          <!-- Menggunakan Async Pipe untuk loop data dari RxJS -->
+          <tr
+            *ngFor="let post of dataList$ | async"
+            class="border-b border-[#d3e4fe] hover:bg-[#f8f9ff] transition-colors group"
+          >
+            <td class="py-3 pl-2 font-bold text-[#00236f]">#{{ post.id }}</td>
+            <td class="py-3 text-[#444651] text-xs">User {{ post.userId }}</td>
+            <td class="py-3 font-medium capitalize max-w-xs truncate">{{ post.title }}</td>
+            <td class="py-3 text-right pr-2">
+              <!-- Tombol Detail yang memicu Modal -->
+              <button
+                (click)="onViewDetail(post.id)"
+                class="px-3 py-1 bg-[#dce9ff] text-[#00236f] rounded text-xs font-bold hover:bg-[#00236f] hover:text-white transition-colors"
+              >
+                Detail
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL DETAIL (Hanya muncul jika detail$ memiliki nilai / tidak null) -->
+  <div
+    *ngIf="detail$ | async as detail"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-[#c5c5d3]/40 relative transform transition-all"
+    >
+      <!-- Tombol Tutup Modal (X) -->
+      <button
+        (click)="closeModal()"
+        class="absolute top-4 right-4 text-gray-400 hover:text-gray-750 p-1 rounded-full hover:bg-gray-100 transition-colors"
+      >
+        <span class="material-symbols-outlined text-[22px]">close</span>
+      </button>
+
+      <!-- Header Modal -->
+      <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
+        <div
+          class="w-10 h-10 rounded-full bg-[#dce9ff] flex items-center justify-center text-[#00236f] font-bold"
+        >
+          #{{ detail.id }}
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-[#0b1c30]">Detail Postingan</h3>
+          <p class="text-xs text-[#444651]">User ID: {{ detail.userId }}</p>
+        </div>
+      </div>
+
+      <!-- Konten Modal -->
+      <div class="space-y-3 mb-6">
+        <div>
+          <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider"
+            >Judul (Title)</span
+          >
+          <h4 class="text-base font-bold text-[#00236f] capitalize mt-0.5">{{ detail.title }}</h4>
+        </div>
+        <div>
+          <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider"
+            >Isi Konten (Body)</span
+          >
+          <p
+            class="text-sm text-[#444651] mt-0.5 bg-gray-50 p-3 rounded-lg border border-gray-100 leading-relaxed"
+          >
+            {{ detail.body }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Footer Modal -->
+      <div class="flex justify-end gap-2">
+        <button
+          (click)="closeModal()"
+          class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors"
+        >
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

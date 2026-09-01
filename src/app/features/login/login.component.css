@@ -1,0 +1,33 @@
+@layer utilities {
+  .bg-surface-container-low { background-color: #eff4ff; }
+  .bg-surface-container-lowest { background-color: #ffffff; }
+  .bg-surface { background-color: #f8f9ff; }
+  .bg-primary { background-color: #00236f; }
+  .bg-primary-container { background-color: #1e3a8a; }
+  .bg-primary-fixed { background-color: #dce1ff; }
+  .bg-secondary-fixed { background-color: #6ffbbe; }
+  
+  .text-on-primary { color: #ffffff; }
+  .text-on-surface { color: #0b1c30; }
+  .text-on-surface-variant { color: #444651; }
+  .text-outline { color: #757682; }
+  .text-primary { color: #00236f; }
+
+  .border-outline-variant { border-color: #c5c5d3; }
+  .border-surface-container { border-color: #e5eeff; }
+
+  .p-container-padding { padding: 20px; }
+  .p-xl { padding: 32px; }
+  .pb-lg { padding-bottom: 24px; }
+  .pt-lg { padding-top: 24px; }
+  .mb-md { margin-bottom: 16px; }
+  .mb-xs { margin-bottom: 4px; }
+  .mt-sm { margin-top: 8px; }
+  .mt-lg { margin-top: 24px; }
+  .gap-stack-gap { gap: 12px; }
+  .gap-xs { gap: 4px; }
+  .gap-sm { gap: 8px; }
+  .gap-lg { gap: 24px; }
+  .left-md { left: 16px; }
+  .right-md { right: 16px; }
+}
