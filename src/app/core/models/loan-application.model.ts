@@ -1,3 +1,5 @@
+export type UserRole = 'SUPERADMIN' | 'MARKETING' | 'BRANCH_MANAGER' | 'BACKOFFICE';
+
 export type LoanStatus =
   | 'SUBMITTED'
   | 'NEED_ADDITIONAL_DATA'
@@ -7,10 +9,11 @@ export type LoanStatus =
   | 'APPROVED_WITH_DOWNGRADE'
   | 'CANCELLED_BY_CUSTOMER'
   | 'REJECTED_BY_BM'
+  | 'DISBURSEMENT_PROCESS'
   | 'DISBURSED';
 
 export interface TierOption {
-  tierLevel: number; // 1, 2, atau 3
+  tierLevel: number;
   amount: number;
 }
 
@@ -25,7 +28,7 @@ export interface DocumentItem {
 export interface LoanApplicationItem {
   id: number;
   loanApplicationNo: string;
-  branchCode: string; // 'JAKARTA'
+  branchCode: string;
   branchName: string;
   customerName: string;
   customerNik: string;
@@ -36,11 +39,10 @@ export interface LoanApplicationItem {
   accountHolderName: string;
   productName: string;
   tenorMonths: number;
-  // 3 Opsi Plafond
   tierOptions: TierOption[];
-  requestedTierLevel: number; // Tier yang dipilih nasabah (1, 2, atau 3)
+  requestedTierLevel: number;
   requestedAmount: number;
-  approvedTierLevel?: number; // Tier yang disetujui BM
+  approvedTierLevel?: number;
   approvedAmount?: number;
   statusCode: LoanStatus;
   statusName: string;

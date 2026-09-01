@@ -1,20 +1,21 @@
 <div class="space-y-6 font-['Inter']">
-  <!-- ROLE SWITCHER TOOLBAR (Untuk Pengujian Simulasinya) -->
-  <div
-    class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50/70 p-4"
-  >
-    <div class="flex items-center gap-2 text-amber-900">
+  <!-- ROLE SWITCHER TOOLBAR -->
+  <div class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
+    <div class="flex items-center gap-2 text-amber-900 text-xs">
       <span class="font-bold">Mode Simulasi Role:</span>
-      <span class="rounded-lg bg-amber-200 px-2.5 py-1 text-xs font-semibold uppercase">{{
-        activeRole()
-      }}</span>
+      <span class="rounded-lg bg-amber-200 px-2.5 py-1 text-xs font-semibold uppercase">
+        {{ activeRole() }}
+      </span>
+      <span class="ml-2 font-bold text-[#00236f]">
+        (Cabang Active: {{ currentBranch() }})
+      </span>
     </div>
-    <div class="flex gap-2">
+    <div class="flex flex-wrap gap-2">
       <button
         type="button"
-        (click)="switchRoleSimualtion('MARKETING')"
+        (click)="switchRoleSimulation('MARKETING')"
         class="rounded-xl px-3 py-1.5 text-xs font-semibold transition"
-        [class.bg-blue-600]="activeRole() === 'MARKETING'"
+        [class.bg-[#00236f]]="activeRole() === 'MARKETING'"
         [class.text-white]="activeRole() === 'MARKETING'"
         [class.bg-white]="activeRole() !== 'MARKETING'"
       >
@@ -22,9 +23,9 @@
       </button>
       <button
         type="button"
-        (click)="switchRoleSimualtion('BRANCH_MANAGER')"
+        (click)="switchRoleSimulation('BRANCH_MANAGER')"
         class="rounded-xl px-3 py-1.5 text-xs font-semibold transition"
-        [class.bg-blue-600]="activeRole() === 'BRANCH_MANAGER'"
+        [class.bg-[#00236f]]="activeRole() === 'BRANCH_MANAGER'"
         [class.text-white]="activeRole() === 'BRANCH_MANAGER'"
         [class.bg-white]="activeRole() !== 'BRANCH_MANAGER'"
       >
@@ -32,17 +33,17 @@
       </button>
       <button
         type="button"
-        (click)="switchRoleSimualtion('BACK_OFFICE')"
+        (click)="switchRoleSimulation('BACKOFFICE')"
         class="rounded-xl px-3 py-1.5 text-xs font-semibold transition"
-        [class.bg-blue-600]="activeRole() === 'BACK_OFFICE'"
-        [class.text-white]="activeRole() === 'BACK_OFFICE'"
-        [class.bg-white]="activeRole() !== 'BACK_OFFICE'"
+        [class.bg-[#00236f]]="activeRole() === 'BACKOFFICE'"
+        [class.text-white]="activeRole() === 'BACKOFFICE'"
+        [class.bg-white]="activeRole() !== 'BACKOFFICE'"
       >
         Back Office View
       </button>
       <button
         type="button"
-        (click)="switchRoleSimualtion('SUPERADMIN')"
+        (click)="switchRoleSimulation('SUPERADMIN')"
         class="rounded-xl px-3 py-1.5 text-xs font-semibold transition"
         [class.bg-slate-900]="activeRole() === 'SUPERADMIN'"
         [class.text-white]="activeRole() === 'SUPERADMIN'"
@@ -59,16 +60,16 @@
       @case ('MARKETING') {
         <h1 class="text-2xl font-bold text-slate-900">Initial Review Pengajuan Pinjaman</h1>
         <p class="text-sm text-slate-500">
-          Daftar pengajuan masuk yang membutuhkan verifikasi kelayakan awal dokumen.
+          Daftar pengajuan wilayah {{ currentBranch() }} yang membutuhkan verifikasi kelayakan awal dokumen.
         </p>
       }
       @case ('BRANCH_MANAGER') {
         <h1 class="text-2xl font-bold text-slate-900">Persetujuan Limit Pembiayaan (BM)</h1>
         <p class="text-sm text-slate-500">
-          Antrean pengajuan yang telah lolos verifikasi Marketing dan membutuhkan persetujuan final.
+          Antrean pengajuan wilayah {{ currentBranch() }} yang membutuhkan persetujuan / penyesuaian tier plafond final.
         </p>
       }
-      @case ('BACK_OFFICE') {
+      @case ('BACKOFFICE') {
         <h1 class="text-2xl font-bold text-slate-900">
           Verifikasi & Pencairan Dana (Disbursement)
         </h1>
@@ -93,7 +94,7 @@
         [ngModel]="searchKeyword()"
         (ngModelChange)="searchKeyword.set($event)"
         placeholder="Cari No Pengajuan, Nama, atau NIK..."
-        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#00236f] focus:ring-4 focus:ring-blue-100"
       />
     </div>
 
@@ -101,7 +102,7 @@
       <select
         [ngModel]="activeStatusFilter()"
         (ngModelChange)="activeStatusFilter.set($event)"
-        class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500"
+        class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-[#00236f]"
       >
         <option value="ALL">Semua Status Scope</option>
         <option value="SUBMITTED">Submitted</option>
@@ -115,21 +116,18 @@
   <!-- TABEL OPERASIONAL UTAMA -->
   <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
     <table class="w-full text-left text-sm text-slate-600">
-      <thead
-        class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500"
-      >
+      <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500">
         <tr>
-          <th class="px-6 py-4">No. Pengajuan / Tanggal</th>
+          <th class="px-6 py-4">No. Pengajuan</th>
           <th class="px-6 py-4">Nasabah</th>
-          <th class="px-6 py-4">Produk & Plafond</th>
+          <th class="px-6 py-4">Plafond Pengajuan</th>
 
-          <!-- Kolom Rekening Hanya Tampil di Role Back Office / Superadmin -->
-          @if (activeRole() === 'BACK_OFFICE' || activeRole() === 'SUPERADMIN') {
+          @if (activeRole() === 'BACKOFFICE' || activeRole() === 'SUPERADMIN') {
             <th class="px-6 py-4">Rekening Bank</th>
           }
 
           <th class="px-6 py-4">Status</th>
-          <th class="px-6 py-4 text-center">Aksi Spesifik Role</th>
+          <th class="px-6 py-4 text-center">Aksi (Actions)</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100">
@@ -137,73 +135,73 @@
           <tr class="transition hover:bg-slate-50/80">
             <!-- No Pengajuan -->
             <td class="px-6 py-4 font-medium text-slate-900">
-              <div>{{ item.loanApplicationNo }}</div>
-              <div class="text-xs font-normal text-slate-400">
-                {{ item.createdAt | date: 'dd MMM yyyy, HH:mm' }}
-              </div>
+              <div class="font-bold text-[#00236f] text-xs">{{ item.loanApplicationNo }}</div>
+              <div class="text-[10px] text-slate-400">{{ item.createdAt }}</div>
             </td>
 
             <!-- Nasabah -->
             <td class="px-6 py-4">
-              <div class="font-medium text-slate-900">{{ item.customerName }}</div>
-              <div class="text-xs text-slate-400">NIK: {{ item.customerNik }}</div>
+              <div class="font-medium text-slate-900 text-xs">{{ item.customerName }}</div>
+              <div class="text-[10px] text-slate-400">NIK: {{ item.customerNik }}</div>
             </td>
 
             <!-- Produk & Plafond -->
             <td class="px-6 py-4">
-              <div class="font-semibold text-blue-600">
-                {{ item.amount | currency: 'IDR' : 'symbol' : '1.0-0' }}
+              <div class="font-semibold text-emerald-700 text-xs">
+                {{ item.requestedAmount | currency: 'IDR' : 'symbol' : '1.0-0' }}
               </div>
-              <div class="text-xs text-slate-500">
-                {{ item.productName }} ({{ item.tenorMonths }} Bln)
+              <div class="text-[10px] text-blue-800 font-bold">
+                Tier {{ item.requestedTierLevel }} dipilih Nasabah
               </div>
             </td>
 
-            <!-- Rekening Bank (Khusus Back Office) -->
-            @if (activeRole() === 'BACK_OFFICE' || activeRole() === 'SUPERADMIN') {
+            <!-- Rekening Bank (Khusus Back Office / Superadmin) -->
+            @if (activeRole() === 'BACKOFFICE' || activeRole() === 'SUPERADMIN') {
               <td class="px-6 py-4">
-                <div class="font-medium text-slate-900">
+                <div class="font-medium text-slate-900 text-xs">
                   {{ item.bankName }} - {{ item.accountNumber }}
                 </div>
-                <div class="text-xs text-slate-500">a.n {{ item.accountHolderName }}</div>
+                <div class="text-[10px] text-slate-500">a.n {{ item.accountHolderName }}</div>
               </td>
             }
 
             <!-- Status Badge -->
             <td class="px-6 py-4">
               <span
-                class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold"
-                [class.bg-blue-100]="item.statusCode === 'SUBMITTED'"
+                class="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border"
+                [class.bg-blue-50]="item.statusCode === 'SUBMITTED'"
                 [class.text-blue-700]="item.statusCode === 'SUBMITTED'"
-                [class.bg-indigo-100]="item.statusCode === 'REVIEWED'"
+                [class.bg-indigo-50]="item.statusCode === 'REVIEWED'"
                 [class.text-indigo-700]="item.statusCode === 'REVIEWED'"
-                [class.bg-emerald-100]="item.statusCode === 'APPROVED_BY_BM'"
+                [class.bg-emerald-50]="item.statusCode === 'APPROVED_BY_BM'"
                 [class.text-emerald-700]="item.statusCode === 'APPROVED_BY_BM'"
-                [class.bg-amber-100]="item.statusCode === 'DISBURSEMENT_PROCESS'"
+                [class.bg-amber-50]="item.statusCode === 'DISBURSEMENT_PROCESS'"
                 [class.text-amber-700]="item.statusCode === 'DISBURSEMENT_PROCESS'"
               >
                 {{ item.statusName }}
               </span>
             </td>
 
-            <!-- DYNAMIC ACTION BUTTONS BERDASARKAN ROLE -->
+            <!-- DYNAMIC ACTION BUTTONS (IKON) -->
             <td class="px-6 py-4">
-              <div class="flex items-center justify-center gap-2">
+              <div class="flex items-center justify-center gap-1">
                 <!-- 1. AKSI ROLE MARKETING -->
                 @if (activeRole() === 'MARKETING') {
                   <button
                     type="button"
-                    (click)="handleMarketingReview(item, 'APPROVE')"
-                    class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-blue-700"
+                    (click)="openActionModal(item, 'MARKETING_APPROVE')"
+                    title="Approve Review (Loloskan ke BM)"
+                    class="p-1.5 text-emerald-600 hover:text-emerald-800 rounded hover:bg-emerald-50"
                   >
-                    Review Dokumen
+                    <span class="material-symbols-outlined text-[18px]">check_circle</span>
                   </button>
                   <button
                     type="button"
-                    (click)="handleMarketingReview(item, 'REQUEST_DATA')"
-                    class="rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-100"
+                    (click)="openActionModal(item, 'MARKETING_REQUEST_DATA')"
+                    title="Minta Dokumen Tambahan"
+                    class="p-1.5 text-amber-600 hover:text-amber-800 rounded hover:bg-amber-50"
                   >
-                    Minta Dokumen
+                    <span class="material-symbols-outlined text-[18px]">edit_document</span>
                   </button>
                 }
 
@@ -211,49 +209,54 @@
                 @if (activeRole() === 'BRANCH_MANAGER') {
                   <button
                     type="button"
-                    (click)="handleBmApproval(item, 'APPROVE')"
-                    class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-emerald-700"
+                    (click)="openActionModal(item, 'BM_APPROVE')"
+                    title="Approve / Downgrade Plafond (BM)"
+                    class="p-1.5 text-emerald-600 hover:text-emerald-800 rounded hover:bg-emerald-50"
                   >
-                    Approve (BM)
+                    <span class="material-symbols-outlined text-[18px]">verified</span>
                   </button>
                   <button
                     type="button"
-                    (click)="handleBmApproval(item, 'REJECT')"
-                    class="rounded-lg border border-red-300 bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
+                    (click)="openActionModal(item, 'BM_REJECT')"
+                    title="Tolak Pinjaman"
+                    class="p-1.5 text-rose-600 hover:text-rose-800 rounded hover:bg-rose-50"
                   >
-                    Tolak
+                    <span class="material-symbols-outlined text-[18px]">cancel</span>
                   </button>
                 }
 
                 <!-- 3. AKSI ROLE BACK OFFICE -->
-                @if (activeRole() === 'BACK_OFFICE') {
+                @if (activeRole() === 'BACKOFFICE') {
                   @if (item.statusCode === 'APPROVED_BY_BM') {
                     <button
                       type="button"
-                      (click)="handleBackOfficeAction(item, 'VERIFY_BANK')"
-                      class="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-violet-700"
+                      (click)="openActionModal(item, 'BO_VERIFY_BANK')"
+                      title="Verifikasi Rekening Valid"
+                      class="p-1.5 text-blue-600 hover:text-blue-800 rounded hover:bg-blue-50"
                     >
-                      Verifikasi Bank
+                      <span class="material-symbols-outlined text-[18px]">account_balance</span>
                     </button>
                   }
                   @if (item.statusCode === 'DISBURSEMENT_PROCESS') {
                     <button
                       type="button"
-                      (click)="handleBackOfficeAction(item, 'DISBURSE')"
-                      class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-emerald-700"
+                      (click)="openActionModal(item, 'BO_DISBURSE')"
+                      title="Cairkan Dana (Disburse)"
+                      class="p-1.5 text-emerald-600 hover:text-emerald-800 rounded hover:bg-emerald-50"
                     >
-                      Cairkan Dana
+                      <span class="material-symbols-outlined text-[18px]">payments</span>
                     </button>
                   }
                 }
 
-                <!-- 4. AKSI DEFAULT / SUPERADMIN -->
+                <!-- 4. SUPERADMIN VIEW DETAIL -->
                 @if (activeRole() === 'SUPERADMIN') {
                   <button
                     type="button"
-                    class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                    title="Detail Audit"
+                    class="p-1.5 text-slate-600 hover:text-slate-800 rounded hover:bg-slate-100"
                   >
-                    Detail Audit
+                    <span class="material-symbols-outlined text-[18px]">visibility</span>
                   </button>
                 }
               </div>
@@ -261,7 +264,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="6" class="px-6 py-12 text-center text-slate-400">
+            <td colspan="6" class="px-6 py-12 text-center text-slate-400 text-xs">
               Tidak ada antrean pengajuan pinjaman untuk role ini.
             </td>
           </tr>
@@ -269,4 +272,87 @@
       </tbody>
     </table>
   </div>
+
+  <!-- MODAL ACTION FORM -->
+  @if (isActionModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl border border-[#c5c5d3]">
+        <h3 class="text-base font-bold text-[#00236f] mb-3 pb-2 border-b">
+          Konfirmasi Operasional
+        </h3>
+
+        @if (selectedItem(); as target) {
+          <div class="bg-slate-50 p-3 rounded-lg text-xs space-y-1 mb-3 border border-slate-200">
+            <div><strong>No. Pengajuan:</strong> {{ target.loanApplicationNo }}</div>
+            <div><strong>Nasabah:</strong> {{ target.customerName }}</div>
+            <div><strong>Pengajuan Nasabah:</strong> <span class="text-blue-800 font-bold">Tier {{ target.requestedTierLevel }} ({{ target.requestedAmount | currency: 'IDR' : 'symbol' : '1.0-0' }})</span></div>
+          </div>
+        }
+
+        <form [formGroup]="modalForm" (ngSubmit)="submitAction()" class="space-y-3">
+          <!-- Pilihan Tier khusus BM APPROVE -->
+          @if (currentActionType() === 'BM_APPROVE') {
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-slate-700 block">Pilih Plafond Setujuan BM *</label>
+              <div class="grid grid-cols-3 gap-2">
+                @for (tier of selectedItem()?.tierOptions; track tier.tierLevel) {
+                  <label
+                    class="border rounded-lg p-2 text-center cursor-pointer hover:bg-blue-50 transition"
+                    [class.border-[#00236f]]="modalForm.controls.selectedTierLevel.value == tier.tierLevel"
+                    [class.bg-blue-50]="modalForm.controls.selectedTierLevel.value == tier.tierLevel"
+                  >
+                    <input type="radio" formControlName="selectedTierLevel" [value]="tier.tierLevel" class="hidden" />
+                    <span class="text-[10px] text-slate-500 block font-bold">Tier {{ tier.tierLevel }}</span>
+                    <strong class="text-xs text-[#00236f] block">{{ tier.amount | currency: 'IDR' : 'symbol' : '1.0-0' }}</strong>
+                  </label>
+                }
+              </div>
+            </div>
+
+            @if (isDowngradeSelected()) {
+              <div class="bg-amber-50 border border-amber-200 p-2 rounded-lg text-[11px] text-amber-900">
+                ⚠️ <strong>Plafond Di-downgrade:</strong> Alasan wajib diisi untuk konfirmasi nasabah.
+              </div>
+              <div>
+                <label class="text-xs font-bold text-amber-900 block mb-1">Alasan Downgrade *</label>
+                <input
+                  type="text"
+                  formControlName="downgradeReason"
+                  placeholder="Misal: DSR melebihi 40%"
+                  class="w-full p-2 text-xs border border-amber-300 rounded-lg outline-none focus:border-[#00236f]"
+                />
+              </div>
+            }
+          }
+
+          <div>
+            <label class="text-xs font-bold text-slate-700 block mb-1">Catatan Operasional *</label>
+            <textarea
+              formControlName="notes"
+              rows="3"
+              placeholder="Masukkan catatan..."
+              class="w-full p-2 text-xs border border-slate-300 rounded-lg outline-none focus:border-[#00236f]"
+            ></textarea>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              (click)="closeActionModal()"
+              class="px-4 py-2 bg-gray-100 text-slate-700 text-xs font-medium rounded-lg hover:bg-gray-200"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              [disabled]="isSubmitting()"
+              class="px-4 py-2 bg-[#00236f] text-white text-xs font-medium rounded-lg hover:bg-opacity-90 disabled:opacity-50"
+            >
+              {{ isSubmitting() ? 'Memproses...' : 'Simpan Transaksi' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
 </div>

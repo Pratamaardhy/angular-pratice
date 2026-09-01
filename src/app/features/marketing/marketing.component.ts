@@ -6,7 +6,7 @@ import { DocumentItem, LoanApplicationItem } from '../../core/models/loan-applic
 @Component({
   selector: 'app-marketing-queue',
   standalone: true,
-  imports: [NgFor, NgIf, NgClass, CurrencyPipe, FormsModule, ReactiveFormsModule],
+  imports: [NgFor, NgIf, CurrencyPipe, FormsModule, ReactiveFormsModule],
   templateUrl: './marketing.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

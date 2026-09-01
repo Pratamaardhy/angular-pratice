@@ -1,189 +1,95 @@
 <div class="p-2 font-['Inter']">
-  <!-- Header Section -->
-  <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-    <div>
-      <h2 class="text-3xl font-bold text-[#00236f] tracking-tight">
-        Verifikasi & Pencairan Dana (Back Office)
-      </h2>
-      <p class="text-xs text-[#444651] mt-1">
-        Validasi kesesuaian data rekening bank dan eksekusi pencairan pinjaman
-        (sultan.trx_loan_disbursements)
-      </p>
-    </div>
+  <div class="mb-6">
+    <h2 class="text-3xl font-bold text-[#00236f] tracking-tight">
+      Verifikasi & Pencairan Dana (Back Office)
+    </h2>
+    <p class="text-xs text-[#444651] mt-1">
+      Verifikasi rekening dan eksekusi transfer dana pencairan (Disbursement)
+    </p>
   </div>
 
-  <!-- Activity List / Table Section -->
   <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 mb-8">
-    <!-- Toolbar Search & Filter -->
-    <div
-      class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b border-[#c5c5d3]/30 gap-4"
-    >
-      <div class="relative w-full md:w-80">
-        <span
-          class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400"
-        >
+    <div class="flex justify-between items-center mb-4 pb-3 border-b border-[#c5c5d3]/30">
+      <div class="relative w-80">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
           <span class="material-symbols-outlined text-[18px]">search</span>
         </span>
         <input
           type="text"
           [value]="searchQuery()"
           (input)="onSearchInput($event)"
-          placeholder="Cari No Pengajuan, No Rekening, nama..."
+          placeholder="Cari No Pengajuan, No Rekening..."
           class="w-full pl-9 pr-4 py-2 text-xs border border-[#c5c5d3] rounded-lg focus:outline-none focus:border-[#00236f]"
         />
       </div>
-
-      <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-        <span class="text-xs text-[#444651] font-medium">
-          Total: {{ filteredQueue().length }} Antrean BO
-        </span>
-
-        <select
-          [value]="selectedStatusFilter()"
-          (change)="selectedStatusFilter.set($any($event.target).value)"
-          class="px-3 py-2 text-xs border border-[#c5c5d3] rounded-lg focus:outline-none focus:border-[#00236f] bg-white text-[#0b1c30]"
-        >
-          <option value="ALL">Semua Status Operasional</option>
-          <option value="APPROVED_BY_BM">APPROVED BY BM</option>
-          <option value="DISBURSEMENT_PROCESS">DISBURSEMENT PROCESS</option>
-          <option value="NEED_ACCOUNT_CORRECTION">NEED ACCOUNT CORRECTION</option>
-        </select>
-      </div>
+      <span class="text-xs text-[#444651] font-medium"
+        >Total: {{ filteredQueue().length }} Antrean BO</span
+      >
     </div>
 
-    <!-- Table -->
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="text-xs text-[#444651] border-b border-[#d3e4fe] font-medium">
             <th class="pb-3 pl-2">No. Pengajuan</th>
             <th class="pb-3">Nasabah</th>
-            <th class="pb-3">Plafond Pinjaman</th>
-            <th class="pb-3">Rekening Bank</th>
+            <th class="pb-3">Plafond Disetujui Final</th>
+            <th class="pb-3">Target Rekening Bank</th>
             <th class="pb-3">Status Operasional</th>
-            <th class="pb-3 text-right pr-2">Aksi (Actions)</th>
+            <th class="pb-3 text-right pr-2">Aksi BO</th>
           </tr>
         </thead>
         <tbody class="text-sm text-[#0b1c30]">
           <tr
             *ngFor="let item of filteredQueue()"
-            class="border-b border-[#d3e4fe] hover:bg-[#f8f9ff] transition-colors group"
+            class="border-b border-[#d3e4fe] hover:bg-[#f8f9ff]"
           >
-            <!-- No Pengajuan -->
             <td class="py-3 pl-2">
-              <div class="flex flex-col">
-                <span
-                  class="font-bold text-[#00236f] text-xs cursor-pointer hover:underline"
-                  (click)="openDetailModal(item)"
-                >
-                  {{ item.loanApplicationNo }}
-                </span>
-                <span class="text-[10px] text-[#444651]">{{ item.createdAt }}</span>
-              </div>
+              <span class="font-bold text-[#00236f] text-xs">{{ item.loanApplicationNo }}</span>
             </td>
 
-            <!-- Nasabah -->
             <td class="py-3">
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-8 h-8 rounded-full bg-[#dce9ff] flex items-center justify-center text-[#444651] text-xs font-bold"
-                >
-                  {{ item.customerName.charAt(0).toUpperCase() }}
-                </div>
-                <div class="flex flex-col">
-                  <span class="font-medium text-[#0b1c30] text-xs">{{ item.customerName }}</span>
-                  <span class="text-[10px] text-[#444651]">NIK: {{ item.customerNik }}</span>
-                </div>
-              </div>
+              <span class="font-medium text-xs block">{{ item.customerName }}</span>
+              <span class="text-[10px] text-[#444651]">NIK: {{ item.customerNik }}</span>
             </td>
 
-            <!-- Plafond Pinjaman -->
             <td class="py-3">
-              <div class="flex flex-col">
-                <span class="font-bold text-emerald-700 text-xs">
-                  {{ item.amount | currency: 'IDR' : 'symbol' : '1.0-0' }}
-                </span>
-                <span class="text-[10px] text-[#444651]"
-                  >{{ item.productName }} ({{ item.tenorMonths }} Bln)</span
-                >
-              </div>
+              <span class="font-bold text-emerald-700 text-xs block">
+                {{
+                  item.approvedAmount ?? item.requestedAmount | currency: 'IDR' : 'symbol' : '1.0-0'
+                }}
+              </span>
+              <span
+                *ngIf="item.approvedTierLevel && item.approvedTierLevel < item.requestedTierLevel"
+                class="text-[10px] text-amber-700 font-bold"
+              >
+                Di-downgrade ke Tier {{ item.approvedTierLevel }}
+              </span>
             </td>
 
-            <!-- Rekening Bank -->
             <td class="py-3">
-              <div class="flex flex-col">
-                <span class="font-bold text-[#00236f] text-xs"
-                  >{{ item.bankName }} - {{ item.accountNumber }}</span
-                >
-                <span class="text-[10px] text-[#444651]">a.n {{ item.accountHolderName }}</span>
-              </div>
+              <span class="font-bold text-[#00236f] text-xs block"
+                >{{ item.bankName }} - {{ item.accountNumber }}</span
+              >
+              <span class="text-[10px] text-[#444651]">a.n {{ item.accountHolderName }}</span>
             </td>
 
-            <!-- Status Badge -->
             <td class="py-3">
               <span
-                [ngClass]="{
-                  'bg-emerald-50 text-emerald-700 border-emerald-200':
-                    item.statusCode === 'APPROVED_BY_BM',
-                  'bg-amber-50 text-amber-700 border-amber-200':
-                    item.statusCode === 'DISBURSEMENT_PROCESS',
-                  'bg-rose-50 text-rose-700 border-rose-200':
-                    item.statusCode === 'NEED_ACCOUNT_CORRECTION',
-                }"
-                class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border"
+                class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"
               >
                 {{ item.statusName }}
               </span>
             </td>
 
-            <!-- Action Buttons Only Icons -->
             <td class="py-3 text-right pr-2">
-              <div class="flex items-center justify-end gap-1">
-                <!-- Detail -->
-                <button
-                  (click)="openDetailModal(item)"
-                  title="Lihat Detail Profil & Rekening"
-                  class="p-1.5 text-[#444651] hover:text-[#00236f] rounded hover:bg-gray-100"
-                >
-                  <span class="material-symbols-outlined text-[18px]">visibility</span>
-                </button>
-
-                <!-- Verifikasi Rekening Bank (Jika APPROVED_BY_BM) -->
-                <button
-                  *ngIf="item.statusCode === 'APPROVED_BY_BM'"
-                  (click)="openActionModal(item, 'VERIFY_ACCOUNT')"
-                  title="Verifikasi Rekening Valid (Lanjut ke Pencairan)"
-                  class="p-1.5 text-blue-600 hover:text-blue-800 rounded hover:bg-blue-50"
-                >
-                  <span class="material-symbols-outlined text-[18px]">account_balance</span>
-                </button>
-
-                <!-- Minta Perbaikan Rekening -->
-                <button
-                  *ngIf="item.statusCode === 'APPROVED_BY_BM'"
-                  (click)="openActionModal(item, 'CORRECT_ACCOUNT')"
-                  title="Minta Perbaikan Rekening Nasabah"
-                  class="p-[#444651] p-1.5 text-amber-600 hover:text-amber-800 rounded hover:bg-amber-50"
-                >
-                  <span class="material-symbols-outlined text-[18px]">credit_card_off</span>
-                </button>
-
-                <!-- Eksekusi Pencairan Dana (Jika DISBURSEMENT_PROCESS) -->
-                <button
-                  *ngIf="item.statusCode === 'DISBURSEMENT_PROCESS'"
-                  (click)="openActionModal(item, 'DISBURSE')"
-                  title="Cairkan Dana (Disburse)"
-                  class="p-1.5 text-emerald-600 hover:text-emerald-800 rounded hover:bg-emerald-50"
-                >
-                  <span class="material-symbols-outlined text-[18px]">payments</span>
-                </button>
-              </div>
-            </td>
-          </tr>
-
-          <tr *ngIf="filteredQueue().length === 0">
-            <td colspan="6" class="text-center py-8 text-[#444651] text-xs">
-              Tidak ada antrean verifikasi atau pencairan dana Back Office saat ini.
+              <button
+                (click)="openActionModal(item, 'DISBURSE')"
+                title="Cairkan Dana (Disburse)"
+                class="p-1.5 text-emerald-600 hover:text-emerald-800 rounded hover:bg-emerald-50"
+              >
+                <span class="material-symbols-outlined text-[18px]">payments</span>
+              </button>
             </td>
           </tr>
         </tbody>
@@ -191,186 +97,50 @@
     </div>
   </div>
 
-  <!-- MODAL DETAIL PROFIL & REKENING BO -->
-  <div
-    *ngIf="isDetailModalOpen() && selectedItem(); let detail"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-  >
-    <div
-      class="bg-white rounded-xl shadow-xl max-w-4xl w-full border border-[#c5c5d3]/40 flex flex-col max-h-[90vh] overflow-hidden"
-    >
-      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50">
-        <div>
-          <h3 class="text-base font-bold text-[#00236f]">Detail Operasional Back Office</h3>
-          <p class="text-[11px] text-[#444651]">No. Pengajuan: {{ detail.loanApplicationNo }}</p>
-        </div>
-        <button (click)="closeDetailModal()" class="text-gray-400 hover:text-gray-600">
-          <span class="material-symbols-outlined text-[20px]">close</span>
-        </button>
-      </div>
-
-      <div class="flex flex-col md:flex-row flex-1 overflow-y-auto">
-        <div class="w-full md:w-1/2 p-5 border-r border-gray-100 space-y-3 text-xs text-[#0b1c30]">
-          <!-- Catatan BM -->
-          <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200 space-y-1">
-            <span class="text-[10px] font-bold text-emerald-900 uppercase"
-              >Instruksi Approval BM:</span
-            >
-            <p class="text-xs text-emerald-950 italic">"{{ detail.bmApprovalNotes }}"</p>
-            <span class="text-[10px] text-emerald-800 block"
-              >— Disetujui pada {{ detail.bmApprovedAt }}</span
-            >
-          </div>
-
-          <h4
-            class="font-bold text-[#00236f] uppercase text-[11px] tracking-wider border-b pb-1 pt-1"
-          >
-            Target Rekening Pencairan
-          </h4>
-          <div class="bg-blue-50/70 p-3 rounded-lg border border-blue-200 space-y-1.5">
-            <div class="flex justify-between">
-              <span class="text-gray-500">Nama Bank:</span>
-              <strong class="text-[#00236f]">{{ detail.bankName }}</strong>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500">Nomor Rekening:</span>
-              <strong class="text-[#00236f] font-mono text-sm">{{ detail.accountNumber }}</strong>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500">Atas Nama:</span>
-              <strong class="text-gray-900">{{ detail.accountHolderName }}</strong>
-            </div>
-          </div>
-
-          <h4
-            class="font-bold text-[#00236f] uppercase text-[11px] tracking-wider border-b pb-1 pt-2"
-          >
-            Informasi Nasabah
-          </h4>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <span class="text-gray-500 block">Nama Nasabah:</span
-              ><strong>{{ detail.customerName }}</strong>
-            </div>
-            <div>
-              <span class="text-gray-500 block">NIK:</span><strong>{{ detail.customerNik }}</strong>
-            </div>
-            <div>
-              <span class="text-gray-500 block">Nominal Pencairan:</span
-              ><strong class="text-emerald-700 text-sm">{{
-                detail.amount | currency: 'IDR' : 'symbol' : '1.0-0'
-              }}</strong>
-            </div>
-            <div>
-              <span class="text-gray-500 block">Produk / Tenor:</span
-              ><span>{{ detail.productName }} ({{ detail.tenorMonths }} Bln)</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="w-full md:w-1/2 p-5 bg-gray-900 text-white flex flex-col justify-between">
-          <div>
-            <span class="text-xs text-gray-400 font-bold block mb-2">Dokumen Disubmit</span>
-            <div class="flex items-center justify-center bg-black/60 rounded-lg p-2 min-h-[220px]">
-              <img
-                *ngIf="previewDocument(); let activeDoc"
-                [src]="activeDoc.documentUrl"
-                [alt]="activeDoc.documentName"
-                class="max-h-[250px] object-contain rounded"
-              />
-            </div>
-          </div>
-
-          <div class="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-800">
-            <button
-              (click)="closeDetailModal()"
-              class="px-4 py-2 bg-gray-700 text-white text-xs rounded-lg hover:bg-gray-600"
-            >
-              Tutup
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL FORM ACTION BACK OFFICE -->
+  <!-- Modal Action BO -->
   <div
     *ngIf="isActionModalOpen()"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
   >
-    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 border border-[#c5c5d3]/40">
-      <h3 class="text-lg font-bold text-[#00236f] mb-4 pb-2 border-b">
-        {{ modalTitle }}
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 border border-[#c5c5d3]">
+      <h3 class="text-base font-bold text-[#00236f] mb-3 pb-2 border-b">
+        Eksekusi Pencairan Dana (Disbursement)
       </h3>
-
-      <div
-        *ngIf="selectedItem(); let target"
-        class="bg-gray-50 p-3 rounded-lg text-xs space-y-1 mb-4 border"
-      >
-        <div><strong>No. Pengajuan:</strong> {{ target.loanApplicationNo }}</div>
-        <div><strong>Nasabah:</strong> {{ target.customerName }}</div>
-        <div><strong>Bank Target:</strong> {{ target.bankName }} - {{ target.accountNumber }}</div>
-        <div>
-          <strong>Nominal:</strong>
-          <span class="font-bold text-emerald-700">{{
-            target.amount | currency: 'IDR' : 'symbol' : '1.0-0'
-          }}</span>
-        </div>
-      </div>
-
       <form [formGroup]="actionForm" (ngSubmit)="submitAction()" class="space-y-3">
-        <!-- Input No Ref Bank / Bukti Transfer jika DISBURSE -->
-        <div *ngIf="currentAction() === 'DISBURSE'">
+        <div>
           <label class="text-xs font-bold text-[#444651] block mb-1"
-            >Nomor Referensi Bank / Bukti Transfer *</label
+            >No. Referensi Transfer Bank *</label
           >
           <input
             type="text"
             formControlName="referenceNo"
             placeholder="Contoh: TRX-BCA-99203112"
-            class="w-full px-3 py-2 text-xs border border-[#c5c5d3] rounded-lg focus:outline-none focus:border-[#00236f]"
+            class="w-full p-2 text-xs border rounded-lg focus:outline-none focus:border-[#00236f]"
           />
-          <p
-            *ngIf="
-              actionForm.controls.referenceNo.touched && actionForm.controls.referenceNo.invalid
-            "
-            class="text-[10px] text-red-600 mt-1"
-          >
-            Nomor referensi transfer wajib diisi.
-          </p>
         </div>
-
         <div>
-          <label class="text-xs font-bold text-[#444651] block mb-1">Catatan Back Office *</label>
+          <label class="text-xs font-bold text-[#444651] block mb-1">Catatan Pencairan BO *</label>
           <textarea
             formControlName="notes"
-            rows="3"
-            placeholder="Masukkan catatan verifikasi atau keterangan pencairan..."
-            class="w-full px-3 py-2 text-xs border border-[#c5c5d3] rounded-lg focus:outline-none focus:border-[#00236f]"
+            rows="2"
+            placeholder="Masukkan catatan pencairan..."
+            class="w-full p-2 text-xs border rounded-lg focus:outline-none focus:border-[#00236f]"
           ></textarea>
-          <p
-            *ngIf="actionForm.controls.notes.touched && actionForm.controls.notes.invalid"
-            class="text-[10px] text-red-600 mt-1"
-          >
-            Catatan operasional wajib diisi minimal 5 karakter.
-          </p>
         </div>
-
-        <div class="flex justify-end gap-2 mt-6">
+        <div class="flex justify-end gap-2 pt-2">
           <button
             type="button"
             (click)="closeActionModal()"
-            class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-200"
+            class="px-3 py-1.5 bg-gray-100 text-xs font-medium rounded-lg"
           >
             Batal
           </button>
           <button
             type="submit"
             [disabled]="isSubmitting()"
-            class="px-4 py-2 bg-[#00236f] text-white text-xs font-medium rounded-lg hover:bg-opacity-90 disabled:opacity-50"
+            class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg"
           >
-            {{ isSubmitting() ? 'Memproses...' : 'Simpan Transaksi' }}
+            Proses Pencairan
           </button>
         </div>
       </form>
