@@ -39,7 +39,7 @@ import { NotificationBellComponent } from '../../../shared/components/notificati
             @if (!isCollapsed()) {
               <div class="truncate transition-opacity duration-200">
                 <h1 class="text-sm font-bold text-[#00236f] leading-tight truncate">
-                  Latihan Angular
+                  Sultan Cash
                 </h1>
                 <p class="text-[9px] font-semibold uppercase tracking-wider text-gray-400">
                   Enterprise Admin
