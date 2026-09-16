@@ -1,14 +1,14 @@
 <div class="space-y-6 font-['Inter']">
   <!-- ROLE SWITCHER TOOLBAR -->
-  <div class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
+  <div
+    class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50/70 p-4"
+  >
     <div class="flex items-center gap-2 text-amber-900 text-xs">
       <span class="font-bold">Mode Simulasi Role:</span>
       <span class="rounded-lg bg-amber-200 px-2.5 py-1 text-xs font-semibold uppercase">
         {{ activeRole() }}
       </span>
-      <span class="ml-2 font-bold text-[#00236f]">
-        (Cabang Active: {{ currentBranch() }})
-      </span>
+      <span class="ml-2 font-bold text-[#00236f]"> (Cabang Active: {{ currentBranch() }}) </span>
     </div>
     <div class="flex flex-wrap gap-2">
       <button
@@ -60,13 +60,15 @@
       @case ('MARKETING') {
         <h1 class="text-2xl font-bold text-slate-900">Initial Review Pengajuan Pinjaman</h1>
         <p class="text-sm text-slate-500">
-          Daftar pengajuan wilayah {{ currentBranch() }} yang membutuhkan verifikasi kelayakan awal dokumen.
+          Daftar pengajuan wilayah {{ currentBranch() }} yang membutuhkan verifikasi kelayakan awal
+          dokumen.
         </p>
       }
       @case ('BRANCH_MANAGER') {
         <h1 class="text-2xl font-bold text-slate-900">Persetujuan Limit Pembiayaan (BM)</h1>
         <p class="text-sm text-slate-500">
-          Antrean pengajuan wilayah {{ currentBranch() }} yang membutuhkan persetujuan / penyesuaian tier plafond final.
+          Antrean pengajuan wilayah {{ currentBranch() }} yang membutuhkan persetujuan / penyesuaian
+          tier plafond final.
         </p>
       }
       @case ('BACKOFFICE') {
@@ -116,7 +118,9 @@
   <!-- TABEL OPERASIONAL UTAMA -->
   <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
     <table class="w-full text-left text-sm text-slate-600">
-      <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500">
+      <thead
+        class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500"
+      >
         <tr>
           <th class="px-6 py-4">No. Pengajuan</th>
           <th class="px-6 py-4">Nasabah</th>
@@ -133,9 +137,15 @@
       <tbody class="divide-y divide-slate-100">
         @for (item of filteredApplications(); track item.id) {
           <tr class="transition hover:bg-slate-50/80">
-            <!-- No Pengajuan -->
+            <!-- No Pengajuan (Bisa Diklik Untuk Detail) -->
             <td class="px-6 py-4 font-medium text-slate-900">
-              <div class="font-bold text-[#00236f] text-xs">{{ item.loanApplicationNo }}</div>
+              <button
+                type="button"
+                (click)="openDetailModal(item)"
+                class="font-bold text-[#00236f] text-xs hover:underline text-left block"
+              >
+                {{ item.loanApplicationNo }}
+              </button>
               <div class="text-[10px] text-slate-400">{{ item.createdAt }}</div>
             </td>
 
@@ -182,9 +192,19 @@
               </span>
             </td>
 
-            <!-- DYNAMIC ACTION BUTTONS (IKON) -->
+            <!-- AKSI (Termasuk Ikon Detail Data) -->
             <td class="px-6 py-4">
               <div class="flex items-center justify-center gap-1">
+                <!-- IKON DETAIL DATA NASABAH (BISA DIAKSES SEMUA ROLE) -->
+                <button
+                  type="button"
+                  (click)="openDetailModal(item)"
+                  title="Lihat Detail Data & Dokumen"
+                  class="p-1.5 text-slate-600 hover:text-[#00236f] rounded hover:bg-slate-100"
+                >
+                  <span class="material-symbols-outlined text-[18px]">visibility</span>
+                </button>
+
                 <!-- 1. AKSI ROLE MARKETING -->
                 @if (activeRole() === 'MARKETING') {
                   <button
@@ -248,17 +268,6 @@
                     </button>
                   }
                 }
-
-                <!-- 4. SUPERADMIN VIEW DETAIL -->
-                @if (activeRole() === 'SUPERADMIN') {
-                  <button
-                    type="button"
-                    title="Detail Audit"
-                    class="p-1.5 text-slate-600 hover:text-slate-800 rounded hover:bg-slate-100"
-                  >
-                    <span class="material-symbols-outlined text-[18px]">visibility</span>
-                  </button>
-                }
               </div>
             </td>
           </tr>
@@ -273,9 +282,146 @@
     </table>
   </div>
 
-  <!-- MODAL ACTION FORM -->
+  <!-- MODAL DETAIL DATA & PREVIEW DOKUMEN (LENGKAP SEPERTI TAMPILAN AWAL) -->
+  @if (isDetailModalOpen()) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+    >
+      <div
+        class="w-full max-w-4xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col"
+      >
+        <!-- Header Modal -->
+        <div
+          class="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200"
+        >
+          <div>
+            <h3 class="text-base font-bold text-[#00236f]">
+              Detail Pengajuan: {{ selectedDetailItem()?.loanApplicationNo }}
+            </h3>
+            <p class="text-xs text-slate-500">Cabang: {{ selectedDetailItem()?.branchName }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="closeDetailModal()"
+            class="text-slate-400 hover:text-slate-700 p-1 rounded-lg"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <!-- Body Modal -->
+        <div class="p-6 overflow-y-auto space-y-6">
+          <!-- Informasi Nasabah & Finansial -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
+              <h4 class="font-bold text-[#00236f] border-b pb-1 mb-2">Profil Nasabah</h4>
+              <div>
+                <span class="text-slate-500">Nama Lengkap:</span>
+                <strong>{{ selectedDetailItem()?.customerName }}</strong>
+              </div>
+              <div>
+                <span class="text-slate-500">NIK:</span>
+                <strong>{{ selectedDetailItem()?.customerNik }}</strong>
+              </div>
+              <div>
+                <span class="text-slate-500">Pekerjaan:</span>
+                <strong>{{ selectedDetailItem()?.occupation }}</strong>
+              </div>
+              <div>
+                <span class="text-slate-500">Pendapatan Bulanan:</span>
+                <strong>{{
+                  selectedDetailItem()?.monthlyIncome | currency: 'IDR' : 'symbol' : '1.0-0'
+                }}</strong>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
+              <h4 class="font-bold text-[#00236f] border-b pb-1 mb-2">Pengajuan Pinjaman & Bank</h4>
+              <div>
+                <span class="text-slate-500">Produk:</span>
+                <strong
+                  >{{ selectedDetailItem()?.productName }} ({{
+                    selectedDetailItem()?.tenorMonths
+                  }}
+                  Bulan)</strong
+                >
+              </div>
+              <div>
+                <span class="text-slate-500">Plafond Pilihan Nasabah:</span>
+                <strong class="text-emerald-700"
+                  >Tier {{ selectedDetailItem()?.requestedTierLevel }} ({{
+                    selectedDetailItem()?.requestedAmount | currency: 'IDR' : 'symbol' : '1.0-0'
+                  }})</strong
+                >
+              </div>
+              <div>
+                <span class="text-slate-500">Rekening Tujuan:</span>
+                <strong
+                  >{{ selectedDetailItem()?.bankName }} -
+                  {{ selectedDetailItem()?.accountNumber }} (a.n
+                  {{ selectedDetailItem()?.accountHolderName }})</strong
+                >
+              </div>
+              <div>
+                <span class="text-slate-500">Status Saat Ini:</span>
+                <strong class="text-blue-700">{{ selectedDetailItem()?.statusName }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview Berkas Dokumen -->
+          <div class="space-y-3">
+            <h4 class="text-xs font-bold text-slate-700">Berkas Dokumen Lampiran</h4>
+            <div class="flex gap-2 border-b pb-2">
+              @for (doc of selectedDetailItem()?.documents; track doc.id) {
+                <button
+                  type="button"
+                  (click)="setPreviewDocument(doc)"
+                  class="px-3 py-1.5 rounded-lg text-xs font-medium border transition"
+                  [class.bg-[#00236f]]="previewDocument()?.id === doc.id"
+                  [class.text-white]="previewDocument()?.id === doc.id"
+                  [class.bg-slate-50]="previewDocument()?.id !== doc.id"
+                >
+                  {{ doc.documentType }}
+                </button>
+              } @empty {
+                <span class="text-xs text-slate-400 italic">Tidak ada lampiran dokumen.</span>
+              }
+            </div>
+
+            @if (previewDocument(); as doc) {
+              <div
+                class="border rounded-xl p-2 bg-slate-900 flex justify-center items-center min-h-[250px]"
+              >
+                <img
+                  [src]="doc.documentUrl"
+                  [alt]="doc.documentName"
+                  class="max-h-[350px] object-contain rounded-lg"
+                />
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Footer Modal -->
+        <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+          <button
+            type="button"
+            (click)="closeDetailModal()"
+            class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-300"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL ACTION FORM OPERASIONAL -->
   @if (isActionModalOpen()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+    >
       <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl border border-[#c5c5d3]">
         <h3 class="text-base font-bold text-[#00236f] mb-3 pb-2 border-b">
           Konfirmasi Operasional
@@ -285,7 +431,14 @@
           <div class="bg-slate-50 p-3 rounded-lg text-xs space-y-1 mb-3 border border-slate-200">
             <div><strong>No. Pengajuan:</strong> {{ target.loanApplicationNo }}</div>
             <div><strong>Nasabah:</strong> {{ target.customerName }}</div>
-            <div><strong>Pengajuan Nasabah:</strong> <span class="text-blue-800 font-bold">Tier {{ target.requestedTierLevel }} ({{ target.requestedAmount | currency: 'IDR' : 'symbol' : '1.0-0' }})</span></div>
+            <div>
+              <strong>Pengajuan Nasabah:</strong>
+              <span class="text-blue-800 font-bold"
+                >Tier {{ target.requestedTierLevel }} ({{
+                  target.requestedAmount | currency: 'IDR' : 'symbol' : '1.0-0'
+                }})</span
+              >
+            </div>
           </div>
         }
 
@@ -293,28 +446,48 @@
           <!-- Pilihan Tier khusus BM APPROVE -->
           @if (currentActionType() === 'BM_APPROVE') {
             <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700 block">Pilih Plafond Setujuan BM *</label>
+              <label class="text-xs font-bold text-slate-700 block"
+                >Pilih Plafond Setujuan BM *</label
+              >
               <div class="grid grid-cols-3 gap-2">
                 @for (tier of selectedItem()?.tierOptions; track tier.tierLevel) {
                   <label
                     class="border rounded-lg p-2 text-center cursor-pointer hover:bg-blue-50 transition"
-                    [class.border-[#00236f]]="modalForm.controls.selectedTierLevel.value == tier.tierLevel"
-                    [class.bg-blue-50]="modalForm.controls.selectedTierLevel.value == tier.tierLevel"
+                    [class.border-[#00236f]]="
+                      modalForm.controls.selectedTierLevel.value == tier.tierLevel
+                    "
+                    [class.bg-blue-50]="
+                      modalForm.controls.selectedTierLevel.value == tier.tierLevel
+                    "
                   >
-                    <input type="radio" formControlName="selectedTierLevel" [value]="tier.tierLevel" class="hidden" />
-                    <span class="text-[10px] text-slate-500 block font-bold">Tier {{ tier.tierLevel }}</span>
-                    <strong class="text-xs text-[#00236f] block">{{ tier.amount | currency: 'IDR' : 'symbol' : '1.0-0' }}</strong>
+                    <input
+                      type="radio"
+                      formControlName="selectedTierLevel"
+                      [value]="tier.tierLevel"
+                      class="hidden"
+                    />
+                    <span class="text-[10px] text-slate-500 block font-bold"
+                      >Tier {{ tier.tierLevel }}</span
+                    >
+                    <strong class="text-xs text-[#00236f] block">{{
+                      tier.amount | currency: 'IDR' : 'symbol' : '1.0-0'
+                    }}</strong>
                   </label>
                 }
               </div>
             </div>
 
             @if (isDowngradeSelected()) {
-              <div class="bg-amber-50 border border-amber-200 p-2 rounded-lg text-[11px] text-amber-900">
-                ⚠️ <strong>Plafond Di-downgrade:</strong> Alasan wajib diisi untuk konfirmasi nasabah.
+              <div
+                class="bg-amber-50 border border-amber-200 p-2 rounded-lg text-[11px] text-amber-900"
+              >
+                ⚠️ <strong>Plafond Di-downgrade:</strong> Alasan wajib diisi untuk konfirmasi
+                nasabah.
               </div>
               <div>
-                <label class="text-xs font-bold text-amber-900 block mb-1">Alasan Downgrade *</label>
+                <label class="text-xs font-bold text-amber-900 block mb-1"
+                  >Alasan Downgrade *</label
+                >
                 <input
                   type="text"
                   formControlName="downgradeReason"

@@ -1,149 +1,771 @@
-<div class="p-2 font-['Inter']">
-  <div class="mb-6">
-    <h2 class="text-3xl font-bold text-[#00236f] tracking-tight">
-      Verifikasi & Pencairan Dana (Back Office)
-    </h2>
-    <p class="text-xs text-[#444651] mt-1">
-      Verifikasi rekening dan eksekusi transfer dana pencairan (Disbursement)
-    </p>
-  </div>
-
-  <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 mb-8">
-    <div class="flex justify-between items-center mb-4 pb-3 border-b border-[#c5c5d3]/30">
-      <div class="relative w-80">
-        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-          <span class="material-symbols-outlined text-[18px]">search</span>
-        </span>
-        <input
-          type="text"
-          [value]="searchQuery()"
-          (input)="onSearchInput($event)"
-          placeholder="Cari No Pengajuan, No Rekening..."
-          class="w-full pl-9 pr-4 py-2 text-xs border border-[#c5c5d3] rounded-lg focus:outline-none focus:border-[#00236f]"
-        />
+<div class="p-2 font-['Inter'] space-y-5">
+  
+  <!-- ========================================================= -->
+  <!-- HALAMAN DAFTAR TABEL BACK OFFICE (VIEW MODE TABLE)        -->
+  <!-- ========================================================= -->
+  @if (viewMode() === 'table') {
+    <!-- Header Banner -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <h2 class="text-3xl font-bold text-[#00236f] tracking-tight">Verifikasi & Pencairan Dana (Back Office)</h2>
+          <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-bold border border-emerald-200">
+            Operasional Disbursement
+          </span>
+        </div>
+        <p class="text-xs text-[#444651] mt-1">
+          Validasi keabsahan nomor rekening bank sasaran, cek profil nasabah, dan eksekusi cair/reject pencairan
+        </p>
       </div>
-      <span class="text-xs text-[#444651] font-medium"
-        >Total: {{ filteredQueue().length }} Antrean BO</span
-      >
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="text-xs text-[#444651] border-b border-[#d3e4fe] font-medium">
-            <th class="pb-3 pl-2">No. Pengajuan</th>
-            <th class="pb-3">Nasabah</th>
-            <th class="pb-3">Plafond Disetujui Final</th>
-            <th class="pb-3">Target Rekening Bank</th>
-            <th class="pb-3">Status Operasional</th>
-            <th class="pb-3 text-right pr-2">Aksi BO</th>
-          </tr>
-        </thead>
-        <tbody class="text-sm text-[#0b1c30]">
-          <tr
-            *ngFor="let item of filteredQueue()"
-            class="border-b border-[#d3e4fe] hover:bg-[#f8f9ff]"
-          >
-            <td class="py-3 pl-2">
-              <span class="font-bold text-[#00236f] text-xs">{{ item.loanApplicationNo }}</span>
-            </td>
-
-            <td class="py-3">
-              <span class="font-medium text-xs block">{{ item.customerName }}</span>
-              <span class="text-[10px] text-[#444651]">NIK: {{ item.customerNik }}</span>
-            </td>
-
-            <td class="py-3">
-              <span class="font-bold text-emerald-700 text-xs block">
-                {{
-                  item.approvedAmount ?? item.requestedAmount | currency: 'IDR' : 'symbol' : '1.0-0'
-                }}
-              </span>
-              <span
-                *ngIf="item.approvedTierLevel && item.approvedTierLevel < item.requestedTierLevel"
-                class="text-[10px] text-amber-700 font-bold"
-              >
-                Di-downgrade ke Tier {{ item.approvedTierLevel }}
-              </span>
-            </td>
-
-            <td class="py-3">
-              <span class="font-bold text-[#00236f] text-xs block"
-                >{{ item.bankName }} - {{ item.accountNumber }}</span
-              >
-              <span class="text-[10px] text-[#444651]">a.n {{ item.accountHolderName }}</span>
-            </td>
-
-            <td class="py-3">
-              <span
-                class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"
-              >
-                {{ item.statusName }}
-              </span>
-            </td>
-
-            <td class="py-3 text-right pr-2">
-              <button
-                (click)="openActionModal(item, 'DISBURSE')"
-                title="Cairkan Dana (Disburse)"
-                class="p-1.5 text-emerald-600 hover:text-emerald-800 rounded hover:bg-emerald-50"
-              >
-                <span class="material-symbols-outlined text-[18px]">payments</span>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Modal Action BO -->
-  <div
-    *ngIf="isActionModalOpen()"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-  >
-    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 border border-[#c5c5d3]">
-      <h3 class="text-base font-bold text-[#00236f] mb-3 pb-2 border-b">
-        Eksekusi Pencairan Dana (Disbursement)
-      </h3>
-      <form [formGroup]="actionForm" (ngSubmit)="submitAction()" class="space-y-3">
-        <div>
-          <label class="text-xs font-bold text-[#444651] block mb-1"
-            >No. Referensi Transfer Bank *</label
-          >
+    <!-- Table Card UI -->
+    <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 mb-8">
+      
+      <!-- Filter Bar -->
+      <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-4 pb-3 border-b border-[#c5c5d3]/30 gap-3">
+        
+        <!-- Search Input -->
+        <div class="relative w-full xl:w-72">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+            <span class="material-symbols-outlined text-[18px]">search</span>
+          </span>
           <input
             type="text"
-            formControlName="referenceNo"
-            placeholder="Contoh: TRX-BCA-99203112"
-            class="w-full p-2 text-xs border rounded-lg focus:outline-none focus:border-[#00236f]"
+            [value]="searchQuery()"
+            (input)="onSearchInput($event)"
+            placeholder="Cari No Pengajuan, Rekening, Nama..."
+            class="w-full pl-9 pr-4 py-2 text-xs border border-[#c5c5d3] rounded-lg focus:outline-none focus:border-[#00236f]"
           />
         </div>
-        <div>
-          <label class="text-xs font-bold text-[#444651] block mb-1">Catatan Pencairan BO *</label>
-          <textarea
-            formControlName="notes"
-            rows="2"
-            placeholder="Masukkan catatan pencairan..."
-            class="w-full p-2 text-xs border rounded-lg focus:outline-none focus:border-[#00236f]"
-          ></textarea>
-        </div>
-        <div class="flex justify-end gap-2 pt-2">
+
+        <!-- Controls Container -->
+        <div class="flex flex-wrap items-center gap-2 w-full xl:w-auto justify-between xl:justify-end relative">
+          
+          <!-- BUTTON & POPOVER KALENDER DUA SISI -->
+          <div class="relative">
+            <button
+              type="button"
+              (click)="toggleDatePicker()"
+              class="flex items-center gap-2 px-3 py-2 bg-white border border-[#c5c5d3] rounded-lg text-xs font-medium text-slate-700 hover:border-[#00236f] transition"
+            >
+              <span class="material-symbols-outlined text-[18px] text-[#00236f]">date_range</span>
+              <span>
+                @if (selectedStartDate(); as start) {
+                  {{ start | date: 'dd MMM yyyy' }}
+                  @if (selectedEndDate(); as end) {
+                    - {{ end | date: 'dd MMM yyyy' }}
+                  }
+                } @else {
+                  Set Periode
+                }
+              </span>
+              <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
+            </button>
+
+            @if (isDatePickerOpen()) {
+              <div class="absolute right-0 mt-2 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 w-[620px] max-w-[95vw] space-y-3 font-['Inter']">
+                <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+                  <span class="text-xs font-bold text-[#00236f] uppercase tracking-wider">Pilih Rentang Tanggal Periode</span>
+                  <button type="button" (click)="toggleDatePicker()" class="text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                  </button>
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <button type="button" (click)="prevMonth()" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600">
+                    <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                  </button>
+                  <div class="flex gap-16 font-bold text-xs text-slate-800">
+                    <span>{{ leftCalendarMonth() | date: 'MMMM yyyy' }}</span>
+                    <span>{{ rightCalendarMonth() | date: 'MMMM yyyy' }}</span>
+                  </div>
+                  <button type="button" (click)="nextMonth()" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600">
+                    <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 text-xs">
+                  <div>
+                    <div class="grid grid-cols-7 gap-1 text-center font-bold text-slate-400 text-[10px] mb-2">
+                      <span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center">
+                      @for (day of leftDaysGrid(); track $index) {
+                        @if (day) {
+                          <button
+                            type="button"
+                            (click)="selectDate(day)"
+                            class="py-1.5 rounded-lg text-xs font-semibold transition"
+                            [class.bg-[#00236f]]="isDateSelected(day)"
+                            [class.text-white]="isDateSelected(day)"
+                            [class.bg-blue-100]="isDateInRange(day)"
+                            [class.text-blue-900]="isDateInRange(day)"
+                            [class.hover:bg-slate-100]="!isDateSelected(day) && !isDateInRange(day)"
+                          >
+                            {{ day.getDate() }}
+                          </button>
+                        } @else { <div></div> }
+                      }
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="grid grid-cols-7 gap-1 text-center font-bold text-slate-400 text-[10px] mb-2">
+                      <span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center">
+                      @for (day of rightDaysGrid(); track $index) {
+                        @if (day) {
+                          <button
+                            type="button"
+                            (click)="selectDate(day)"
+                            class="py-1.5 rounded-lg text-xs font-semibold transition"
+                            [class.bg-[#00236f]]="isDateSelected(day)"
+                            [class.text-white]="isDateSelected(day)"
+                            [class.bg-blue-100]="isDateInRange(day)"
+                            [class.text-blue-900]="isDateInRange(day)"
+                            [class.hover:bg-slate-100]="!isDateSelected(day) && !isDateInRange(day)"
+                          >
+                            {{ day.getDate() }}
+                          </button>
+                        } @else { <div></div> }
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-3 border-t border-slate-100 text-xs">
+                  <button type="button" (click)="resetPeriode()" class="text-rose-600 font-bold hover:underline">
+                    Reset Periode
+                  </button>
+                  <div class="flex gap-2">
+                    <button type="button" (click)="toggleDatePicker()" class="px-3 py-1.5 bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-slate-200">
+                      Batal
+                    </button>
+                    <button type="button" (click)="applyPeriode()" class="px-4 py-1.5 bg-[#00236f] text-white font-semibold rounded-lg hover:bg-blue-900">
+                      Terapkan Periode
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- FILTER STATUS LENGKAP -->
+          <select
+            [value]="selectedStatusFilter()"
+            (change)="selectedStatusFilter.set($any($event.target).value); onFilterChange()"
+            class="px-3 py-2 text-xs border border-[#c5c5d3] rounded-lg focus:outline-none focus:border-[#00236f] bg-white text-[#0b1c30]"
+          >
+            <option value="ALL">Semua Status</option>
+            <option value="APPROVED_BY_BM">APPROVED BY BM</option>
+            <option value="DISBURSEMENT_PROCESS">DISBURSEMENT PROCESS</option>
+            <option value="DISBURSED">DISBURSED</option>
+            <option value="REJECTED_DISBURSEMENT">REJECTED DISBURSEMENT</option>
+          </select>
+
+          <!-- Export Data CSV -->
           <button
             type="button"
-            (click)="closeActionModal()"
-            class="px-3 py-1.5 bg-gray-100 text-xs font-medium rounded-lg"
+            (click)="exportData()"
+            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow transition flex items-center gap-1.5"
           >
-            Batal
-          </button>
-          <button
-            type="submit"
-            [disabled]="isSubmitting()"
-            class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg"
-          >
-            Proses Pencairan
+            <span class="material-symbols-outlined text-[18px]">download</span>
+            Export Data
           </button>
         </div>
-      </form>
+      </div>
+
+      <!-- Tabel Data Back Office -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="text-xs text-[#444651] border-b border-[#d3e4fe] font-medium">
+              <th class="pb-3 pl-2 w-12 text-center">No.</th>
+              <th class="pb-3">No. Pengajuan</th>
+              <th class="pb-3">Nasabah</th>
+              <th class="pb-3">Plafond Disetujui Final</th>
+              <th class="pb-3">Target Rekening Bank</th>
+              <th class="pb-3">Status Operasional</th>
+              <th class="pb-3 text-right pr-2">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm text-[#0b1c30]">
+            @for (item of paginatedQueue(); track item.id; let i = $index) {
+              <tr class="border-b border-[#d3e4fe] hover:bg-[#f8f9ff] transition-colors">
+                <td class="py-3 pl-2 text-center text-xs font-bold text-slate-500">
+                  {{ (currentPage() - 1) * pageSize() + i + 1 }}.
+                </td>
+
+                <td class="py-3">
+                  <div class="flex flex-col">
+                    <button
+                      type="button"
+                      (click)="goToDetailPage(item)"
+                      class="font-bold text-[#00236f] text-xs hover:underline text-left block"
+                    >
+                      {{ item.loanApplicationNo }}
+                    </button>
+                    <span class="text-[10px] text-[#444651] block">{{ item.createdAt }}</span>
+                  </div>
+                </td>
+
+                <td class="py-3">
+                  <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full bg-[#dce9ff] flex items-center justify-center text-[#00236f] text-xs font-bold">
+                      {{ item.customerName.charAt(0) }}
+                    </div>
+                    <div class="flex flex-col">
+                      <button
+                        type="button"
+                        (click)="goToDetailPage(item)"
+                        class="font-medium text-xs text-left hover:text-[#00236f] block"
+                      >
+                        {{ item.customerName }}
+                      </button>
+                      <span class="text-[10px] text-[#444651]">NIK: {{ item.customerNik }}</span>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="py-3">
+                  <span class="font-bold text-emerald-700 text-xs block">
+                    {{ (item.approvedAmount ?? item.requestedAmount) | currency: 'IDR' : 'symbol' : '1.0-0' }}
+                  </span>
+                  @if (item.approvedTierLevel && item.approvedTierLevel < item.requestedTierLevel) {
+                    <span class="text-[10px] text-amber-700 font-bold block">
+                      Di-downgrade ke Tier {{ item.approvedTierLevel }}
+                    </span>
+                  } @else {
+                    <span class="text-[10px] text-blue-800 font-semibold block">
+                      Sesuai Tier {{ item.requestedTierLevel }} Nasabah
+                    </span>
+                  }
+                </td>
+
+                <td class="py-3">
+                  <span class="font-bold text-[#00236f] text-xs block">{{ item.bankName }} - {{ item.accountNumber }}</span>
+                  <span class="text-[10px] text-[#444651] block">a.n {{ item.accountHolderName }}</span>
+                </td>
+
+                <td class="py-3">
+                  <span
+                    class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border"
+                    [class.bg-emerald-50]="item.statusCode === 'APPROVED_BY_BM' || item.statusCode === 'DISBURSED'"
+                    [class.text-emerald-700]="item.statusCode === 'APPROVED_BY_BM' || item.statusCode === 'DISBURSED'"
+                    [class.border-emerald-200]="item.statusCode === 'APPROVED_BY_BM' || item.statusCode === 'DISBURSED'"
+                    [class.bg-blue-50]="item.statusCode === 'DISBURSEMENT_PROCESS'"
+                    [class.text-blue-700]="item.statusCode === 'DISBURSEMENT_PROCESS'"
+                    [class.border-blue-200]="item.statusCode === 'DISBURSEMENT_PROCESS'"
+                    [class.bg-rose-50]="item.statusCode === 'REJECTED_DISBURSEMENT'"
+                    [class.text-rose-700]="item.statusCode === 'REJECTED_DISBURSEMENT'"
+                    [class.border-rose-200]="item.statusCode === 'REJECTED_DISBURSEMENT'"
+                  >
+                    {{ item.statusName }}
+                  </span>
+                </td>
+
+                <td class="py-3 text-right pr-2">
+                  <button
+                    type="button"
+                    (click)="goToDetailPage(item)"
+                    title="Cek Profile Data Diri Konsumen & Proses Pencairan"
+                    class="p-1.5 text-slate-600 hover:text-[#00236f] rounded hover:bg-gray-100"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">visibility</span>
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="px-6 py-12 text-center text-slate-400 text-xs">
+                  Tidak ada antrean pencairan dana untuk Back Office.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer Pagination -->
+      <div class="flex flex-col sm:flex-row justify-between items-center mt-4 pt-3 border-t border-[#c5c5d3]/30 gap-3 text-xs">
+        <div class="flex flex-wrap items-center gap-3 text-[#444651]">
+          <span>Total: <strong>{{ totalItems() }}</strong> data</span>
+          <span class="text-slate-300">|</span>
+          <span>Menampilkan halaman <strong>{{ currentPage() }}</strong> dari <strong>{{ totalPages() }}</strong></span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-1.5">
+            <span class="text-[#444651]">Tampilkan:</span>
+            <select
+              [value]="pageSize()"
+              (change)="onPageSizeChange($event)"
+              class="px-2 py-1 text-xs border border-[#c5c5d3] rounded-lg bg-white text-slate-800 focus:outline-none focus:border-[#00236f]"
+            >
+              @for (opt of pageSizeOptions(); track opt) {
+                <option [value]="opt">{{ opt }}</option>
+              }
+            </select>
+            <span class="text-[#444651]">baris</span>
+          </div>
+
+          <div class="flex items-center gap-1">
+            <button
+              type="button"
+              (click)="goToPage(currentPage() - 1)"
+              [disabled]="currentPage() === 1"
+              class="px-3 py-1.5 rounded-lg border border-[#c5c5d3] text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 font-medium"
+            >
+              Previous
+            </button>
+
+            @for (p of [].constructor(totalPages()); track $index) {
+              <button
+                type="button"
+                (click)="goToPage($index + 1)"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold border transition"
+                [class.bg-[#00236f]]="currentPage() === $index + 1"
+                [class.text-white]="currentPage() === $index + 1"
+                [class.border-[#00236f]]="currentPage() === $index + 1"
+                [class.border-[#c5c5d3]]="currentPage() !== $index + 1"
+                [class.text-slate-700]="currentPage() !== $index + 1"
+              >
+                {{ $index + 1 }}
+              </button>
+            }
+
+            <button
+              type="button"
+              (click)="goToPage(currentPage() + 1)"
+              [disabled]="currentPage() === totalPages()"
+              class="px-3 py-1.5 rounded-lg border border-[#c5c5d3] text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 font-medium"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
-  </div>
+  }
+
+  <!-- ========================================================= -->
+  <!-- HALAMAN DETAIL PENGAJUAN PINJAMAN (VIEW MODE DETAIL)      -->
+  <!-- ========================================================= -->
+  @if (viewMode() === 'detail') {
+    <div class="space-y-6">
+      
+      <!-- Top Nav Back Button -->
+      <div class="flex items-center justify-between bg-white border border-[#c5c5d3]/50 rounded-2xl p-4 shadow-sm">
+        <button
+          type="button"
+          (click)="goToTablePage()"
+          class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-[#00236f] text-xs font-bold rounded-xl transition flex items-center gap-2"
+        >
+          <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+          Kembali ke Daftar Pengajuan
+        </button>
+
+        <span class="text-xs font-bold text-[#00236f] uppercase tracking-wider">
+          Halaman Validasi Disbursement BO • {{ selectedDetailItem()?.loanApplicationNo }}
+        </span>
+      </div>
+
+      <!-- Detail Card Container -->
+      <div class="bg-white border border-[#c5c5d3]/50 rounded-2xl overflow-hidden shadow-sm">
+        
+        <!-- Detail Header -->
+        <div class="flex items-center justify-between px-6 py-4 bg-[#00236f] text-white">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white font-bold text-base border border-white/20">
+              {{ selectedDetailItem()?.customerName?.charAt(0) }}
+            </div>
+            <div>
+              <h3 class="text-base font-bold leading-tight">
+                {{ selectedDetailItem()?.customerName }}
+              </h3>
+              <p class="text-xs text-blue-200 mt-0.5">
+                {{ selectedDetailItem()?.loanApplicationNo }} • {{ selectedDetailItem()?.branchName }}
+              </p>
+            </div>
+          </div>
+          <span class="px-3 py-1 bg-blue-100 text-[#00236f] rounded-full text-xs font-bold uppercase">
+            {{ selectedDetailItem()?.statusName }}
+          </span>
+        </div>
+
+        <div class="p-6 space-y-6 bg-slate-50/50">
+          
+          <!-- SECTION 1: PROFIL DATA DIRI KONSUMEN (LENGKAP GRID 4 KOLOM X 4 BARIS) -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+            <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+              <span class="material-symbols-outlined text-[#00236f] text-[20px]">badge</span>
+              <h4 class="font-bold text-xs text-[#00236f] uppercase tracking-wider">Profil Data Diri Konsumen</h4>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-5 gap-x-6 text-xs leading-relaxed">
+              
+              <!-- BARIS 1 -->
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">Nama Lengkap:</span>
+                <strong class="text-slate-900 font-bold block">{{ selectedDetailItem()?.customerName }}</strong>
+              </div>
+
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">NIK Pemohon:</span>
+                <strong class="text-slate-900 font-semibold block">{{ selectedDetailItem()?.customerNik }}</strong>
+              </div>
+
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">Nomor Telp Pemohon:</span>
+                <strong class="text-slate-900 font-semibold block">{{ selectedDetailItem()?.customerPhone }}</strong>
+              </div>
+
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">Email Pribadi:</span>
+                <strong class="text-slate-900 font-semibold block truncate" [title]="selectedDetailItem()?.customerEmail">
+                  {{ selectedDetailItem()?.customerEmail }}
+                </strong>
+              </div>
+
+              <!-- BARIS 2 -->
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">Provinsi Domisili:</span>
+                <strong class="text-slate-900 font-semibold block">{{ selectedDetailItem()?.province }}</strong>
+              </div>
+
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">Kota / Kabupaten:</span>
+                <strong class="text-slate-900 font-semibold block">{{ selectedDetailItem()?.city }}</strong>
+              </div>
+
+              <div class="lg:col-span-2">
+                <span class="text-slate-400 text-[11px] block mb-0.5">Alamat Domisili:</span>
+                <strong class="text-slate-900 font-semibold block truncate" [title]="selectedDetailItem()?.domicileAddress">
+                  {{ selectedDetailItem()?.domicileAddress }}
+                </strong>
+              </div>
+
+              <!-- BARIS 3 -->
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">Nama Gadis Ibu Kandung:</span>
+                <strong class="text-slate-900 font-semibold block">{{ selectedDetailItem()?.motherMaidenName }}</strong>
+              </div>
+
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">Pekerjaan:</span>
+                <strong class="text-slate-900 font-semibold block">{{ selectedDetailItem()?.occupation }}</strong>
+              </div>
+
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">Jabatan:</span>
+                <strong class="text-slate-900 font-semibold block">{{ selectedDetailItem()?.jobPosition }}</strong>
+              </div>
+
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">Bidang Usaha:</span>
+                <strong class="text-slate-900 font-semibold block">{{ selectedDetailItem()?.businessSector }}</strong>
+              </div>
+
+              <!-- BARIS 4 -->
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">Nama Perusahaan:</span>
+                <strong class="text-slate-900 font-semibold block">{{ selectedDetailItem()?.companyName }}</strong>
+              </div>
+
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">Pendapatan Per Bulan:</span>
+                <strong class="text-emerald-700 font-bold text-sm block">
+                  {{ selectedDetailItem()?.monthlyIncome | currency: 'IDR' : 'symbol' : '1.0-0' }}
+                </strong>
+              </div>
+
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">Sumber Dana / Kekayaan:</span>
+                <strong class="text-slate-900 font-semibold block">{{ selectedDetailItem()?.fundSource }}</strong>
+              </div>
+
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">No. Telp Perusahaan:</span>
+                <strong class="text-slate-900 font-semibold block">{{ selectedDetailItem()?.companyPhone }}</strong>
+              </div>
+
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 text-xs">
+              <span class="text-slate-400 text-[11px] block mb-0.5">Alamat Perusahaan:</span>
+              <strong class="text-slate-900 font-medium block">{{ selectedDetailItem()?.companyAddress }}</strong>
+            </div>
+          </div>
+
+          <!-- SECTION 2: AUDIT TRAIL CATATAN & TARGET REKENING DENGAN LOGO -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <!-- Audit Trail Catatan Marketing & BM -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+              <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
+                <span class="material-symbols-outlined text-[#00236f] text-[18px]">history_edu</span>
+                <h4 class="font-bold text-xs text-[#00236f] uppercase tracking-wider">Audit Trail Persetujuan</h4>
+              </div>
+              
+              <div class="space-y-2.5 text-xs leading-relaxed">
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
+                  <span class="text-[10px] font-bold text-blue-900 block">Catatan Marketing:</span>
+                  <p class="text-slate-700 italic">"{{ selectedDetailItem()?.marketingNotes }}"</p>
+                  <span class="text-[10px] text-slate-400 block pt-1">— {{ selectedDetailItem()?.marketingReviewerName }}</span>
+                </div>
+
+                <div class="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200/80 space-y-1">
+                  <span class="text-[10px] font-bold text-emerald-900 block">Catatan Keputusan BM:</span>
+                  <p class="text-slate-700 italic">"{{ selectedDetailItem()?.bmNotes }}"</p>
+                  @if (selectedDetailItem()?.downgradeReason) {
+                    <span class="text-[10px] text-amber-800 font-bold block pt-1">Alasan Downgrade: {{ selectedDetailItem()?.downgradeReason }}</span>
+                  }
+                </div>
+
+                <div class="flex justify-between items-center pt-1 border-t border-slate-100">
+                  <span class="text-slate-500 font-semibold">Nominal Cair Final Disetujui:</span>
+                  <strong class="text-emerald-700 font-bold text-sm">
+                    {{ selectedDetailItem()?.approvedAmount | currency: 'IDR' : 'symbol' : '1.0-0' }}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Target Rekening Transfer DENGAN LOGO BANK -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-[#00236f] text-[18px]">account_balance</span>
+                  <h4 class="font-bold text-xs text-[#00236f] uppercase tracking-wider">Target Rekening Transfer</h4>
+                </div>
+
+                @if (selectedDetailItem()?.bankLogoUrl; as logoUrl) {
+                  <img
+                    [src]="logoUrl"
+                    [alt]="selectedDetailItem()?.bankName"
+                    class="h-6 object-contain rounded bg-white px-1.5 py-0.5 border border-slate-200"
+                  />
+                }
+              </div>
+
+              <div class="bg-blue-50/80 p-4 rounded-xl border border-blue-100 space-y-2 text-xs">
+                <div class="flex justify-between items-center">
+                  <span class="text-slate-500 text-[10px]">Bank Penerima:</span>
+                  <strong class="text-xs font-bold text-[#00236f] uppercase bg-white px-2 py-0.5 rounded border border-blue-200">
+                    {{ selectedDetailItem()?.bankName }}
+                  </strong>
+                </div>
+
+                <div>
+                  <span class="text-slate-500 text-[10px] block mb-0.5">Nomor Rekening:</span>
+                  <strong class="text-lg font-mono font-bold text-slate-800 tracking-wider block">
+                    {{ selectedDetailItem()?.accountNumber }}
+                  </strong>
+                </div>
+
+                <div>
+                  <span class="text-slate-500 text-[10px] block mb-0.5">Atas Nama Pemilik:</span>
+                  <strong class="text-xs font-bold text-slate-800 uppercase block">
+                    {{ selectedDetailItem()?.accountHolderName }}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SECTION 3: VERIFIKASI BERKAS REKENING & KTP -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#00236f] text-[20px]">folder_open</span>
+                <h4 class="font-bold text-xs text-[#00236f] uppercase tracking-wider">Verifikasi Berkas Rekening & KTP</h4>
+              </div>
+              <span class="text-[11px] text-slate-400 font-medium">
+                {{ selectedDetailItem()?.documents?.length ?? 0 }} File Terlampir
+              </span>
+            </div>
+
+            <div class="flex gap-2 overflow-x-auto pb-1">
+              @for (doc of selectedDetailItem()?.documents; track doc.id) {
+                <button
+                  type="button"
+                  (click)="setPreviewDocument(doc)"
+                  class="px-3.5 py-2 rounded-xl text-xs font-semibold border transition flex items-center gap-2 whitespace-nowrap"
+                  [class.bg-[#00236f]]="previewDocument()?.id === doc.id"
+                  [class.text-white]="previewDocument()?.id === doc.id"
+                  [class.border-[#00236f]]="previewDocument()?.id === doc.id"
+                  [class.bg-slate-50]="previewDocument()?.id !== doc.id"
+                  [class.text-slate-600]="previewDocument()?.id !== doc.id"
+                  [class.border-slate-200]="previewDocument()?.id !== doc.id"
+                >
+                  <span class="material-symbols-outlined text-[16px]">description</span>
+                  {{ doc.documentType }}
+                </button>
+              } @empty {
+                <span class="text-xs text-slate-400 italic py-2">Tidak ada berkas terlampir.</span>
+              }
+            </div>
+
+            @if (previewDocument(); as doc) {
+              <div class="mt-2 border rounded-2xl p-4 bg-slate-900 flex flex-col justify-center items-center min-h-[300px]">
+                <img [src]="doc.documentUrl" [alt]="doc.documentName" class="max-h-[380px] object-contain rounded-xl shadow-md" />
+                <span class="text-[10px] text-slate-400 mt-3 font-mono">{{ doc.documentName }} • Diunggah: {{ doc.uploadedAt }}</span>
+              </div>
+            }
+          </div>
+
+        </div>
+
+        <!-- DETAIL FOOTER: AKSI CAIRKAN DANA & REJECT DISBURSEMENT -->
+        <div class="px-6 py-4 bg-slate-100 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <button
+            type="button"
+            (click)="goToTablePage()"
+            class="px-5 py-2 bg-slate-300 hover:bg-slate-400 text-slate-800 text-xs font-semibold rounded-xl transition shadow-sm w-full sm:w-auto"
+          >
+            Kembali
+          </button>
+
+          <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+            <!-- Tombol Reject Disbursement -->
+            <button
+              type="button"
+              (click)="openActionModal('REJECT_DISBURSEMENT')"
+              class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow flex items-center gap-1.5"
+            >
+              <span class="material-symbols-outlined text-[18px]">cancel</span>
+              Reject Disbursement
+            </button>
+
+            <!-- Tombol Proses Cairkan Dana -->
+            <button
+              type="button"
+              (click)="openActionModal('DISBURSE')"
+              class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow flex items-center gap-1.5"
+            >
+              <span class="material-symbols-outlined text-[18px]">payments</span>
+              Proses Cairkan Dana
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================= -->
+  <!-- MODAL ACTION FORM PENCAIRAN DANA / REJECT DISBURSEMENT    -->
+  <!-- ========================================================= -->
+  @if (isActionModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+          <h3 class="text-sm font-bold text-[#00236f] uppercase tracking-wider">
+            {{ currentAction() === 'DISBURSE' ? 'Eksekusi Pencairan Dana' : 'Penolakan Pencairan (Reject Disbursement)' }}
+          </h3>
+          <button type="button" (click)="closeActionModal()" class="text-slate-400 hover:text-slate-600">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+
+        @if (selectedDetailItem(); as target) {
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs mb-4 space-y-1.5">
+            <div class="flex justify-between">
+              <span class="text-slate-500">No. Pengajuan:</span>
+              <strong class="text-[#00236f] font-bold">{{ target.loanApplicationNo }}</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Nasabah:</span>
+              <strong class="text-slate-800">{{ target.customerName }}</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Rekening Target:</span>
+              <strong class="text-[#00236f]">{{ target.bankName }} - {{ target.accountNumber }}</strong>
+            </div>
+            <div class="flex justify-between pt-1 border-t border-slate-200/60">
+              <span class="text-slate-500">Nominal Cair Final:</span>
+              <strong class="text-emerald-700 text-sm font-bold">
+                {{ (target.approvedAmount ?? target.requestedAmount) | currency: 'IDR' : 'symbol' : '1.0-0' }}
+              </strong>
+            </div>
+          </div>
+        }
+
+        <form [formGroup]="actionForm" (ngSubmit)="submitAction()" class="space-y-4">
+          
+          <!-- Input Ref Transfer jika CAIRKAN DANA -->
+          @if (currentAction() === 'DISBURSE') {
+            <div>
+              <label class="text-xs font-bold text-slate-700 block mb-1">No. Referensi Transfer Bank *</label>
+              <input
+                type="text"
+                formControlName="referenceNo"
+                placeholder="Contoh: TRX-BCA-20260901-098"
+                class="w-full p-2.5 text-xs border border-slate-300 rounded-xl outline-none focus:border-[#00236f] focus:ring-2 focus:ring-blue-100 font-mono"
+              />
+              @if (actionForm.get('referenceNo')?.invalid && actionForm.get('referenceNo')?.touched) {
+                <span class="text-[10px] text-rose-600 block mt-1">No. Referensi Transfer wajib diisi.</span>
+              }
+            </div>
+          }
+
+          <!-- Warning jika REJECT DISBURSEMENT -->
+          @if (currentAction() === 'REJECT_DISBURSEMENT') {
+            <div class="bg-rose-50 border border-rose-200/90 p-3 rounded-xl text-xs text-rose-900 space-y-1">
+              <div class="flex items-center gap-1.5 font-bold">
+                <span class="material-symbols-outlined text-[16px] text-rose-700">warning</span>
+                Reject Disbursement!
+              </div>
+              <p class="text-[11px] text-rose-800">
+                Pencairan dana ditolak karena kesalahan rekening/ketidaksesuaian data. Alasan penolakan wajib diisi.
+              </p>
+            </div>
+          }
+
+          <div>
+            <label class="text-xs font-bold text-slate-700 block mb-1">
+              {{ currentAction() === 'DISBURSE' ? 'Catatan Instruksi Pencairan *' : 'Alasan Penolakan Disbursement *' }}
+            </label>
+            <textarea
+              formControlName="notes"
+              rows="3"
+              [placeholder]="currentAction() === 'DISBURSE' ? 'Masukkan catatan pemindahbukuan...' : 'Misal: Nama pemilik rekening tidak cocok dengan KTP nasabah'"
+              class="w-full p-2.5 text-xs border border-slate-300 rounded-xl outline-none focus:border-[#00236f] focus:ring-2 focus:ring-blue-100"
+            ></textarea>
+            @if (actionForm.get('notes')?.invalid && actionForm.get('notes')?.touched) {
+              <span class="text-[10px] text-rose-600 block mt-1">Catatan wajib diisi minimal 5 karakter.</span>
+            }
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              (click)="closeActionModal()"
+              class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-200 transition"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              [disabled]="isSubmitting()"
+              [class.bg-emerald-600]="currentAction() === 'DISBURSE'"
+              [class.hover:bg-emerald-700]="currentAction() === 'DISBURSE'"
+              [class.bg-rose-600]="currentAction() === 'REJECT_DISBURSEMENT'"
+              [class.hover:bg-rose-700]="currentAction() === 'REJECT_DISBURSEMENT'"
+              class="px-4 py-2 text-white text-xs font-semibold rounded-xl transition shadow-sm"
+            >
+              {{ isSubmitting() ? 'Memproses...' : (currentAction() === 'DISBURSE' ? 'Proses Pencairan' : 'Tolak Pencairan') }}
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  }
+
 </div>

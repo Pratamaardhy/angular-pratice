@@ -1,7 +1,11 @@
 import { CurrencyPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { LoanApplicationItem, UserRole } from '../../core/models/loan-application.model';
+import {
+  DocumentItem,
+  LoanApplicationItem,
+  UserRole,
+} from '../../core/models/loan-application.model';
 
 @Component({
   selector: 'app-loan-application-list',
@@ -17,6 +21,12 @@ export class LoanApplicationListComponent {
   readonly searchKeyword = signal('');
   readonly activeStatusFilter = signal<string>('ALL');
 
+  // State Modal Detail (Untuk Lihat Data & Dokumen Nasabah)
+  readonly isDetailModalOpen = signal(false);
+  readonly selectedDetailItem = signal<LoanApplicationItem | null>(null);
+  readonly previewDocument = signal<DocumentItem | null>(null);
+
+  // State Modal Aksi Operasional
   readonly isActionModalOpen = signal(false);
   readonly selectedItem = signal<LoanApplicationItem | null>(null);
   readonly currentActionType = signal<string | null>(null);
@@ -49,7 +59,22 @@ export class LoanApplicationListComponent {
       statusCode: 'SUBMITTED',
       statusName: 'SUBMITTED',
       createdAt: '2026-09-01 09:00',
-      documents: [],
+      documents: [
+        {
+          id: 101,
+          documentType: 'KTP',
+          documentName: 'KTP_Budi.jpg',
+          documentUrl: 'https://placehold.co/600x400/00236f/ffffff?text=KTP+Budi+Santoso',
+          uploadedAt: '2026-09-01 08:50',
+        },
+        {
+          id: 102,
+          documentType: 'Slip Gaji',
+          documentName: 'SlipGaji_Budi.pdf',
+          documentUrl: 'https://placehold.co/600x400/00236f/ffffff?text=Slip+Gaji+Budi',
+          uploadedAt: '2026-09-01 08:52',
+        },
+      ],
     },
     {
       id: 2,
@@ -77,7 +102,15 @@ export class LoanApplicationListComponent {
       marketingNotes: 'Usaha stabil, dokumen lengkap, rasio kelayakan baik.',
       marketingReviewerName: 'Budi (Marketing)',
       createdAt: '2026-09-01 10:00',
-      documents: [],
+      documents: [
+        {
+          id: 201,
+          documentType: 'KTP',
+          documentName: 'KTP_Siti.jpg',
+          documentUrl: 'https://placehold.co/600x400/00236f/ffffff?text=KTP+Siti+Rahma',
+          uploadedAt: '2026-09-01 09:50',
+        },
+      ],
     },
     {
       id: 3,
@@ -152,6 +185,24 @@ export class LoanApplicationListComponent {
     this.activeStatusFilter.set('ALL');
   }
 
+  // --- MODAL DETAIL DATA ---
+  openDetailModal(item: LoanApplicationItem): void {
+    this.selectedDetailItem.set(item);
+    this.previewDocument.set(item.documents[0] ?? null);
+    this.isDetailModalOpen.set(true);
+  }
+
+  closeDetailModal(): void {
+    this.isDetailModalOpen.set(false);
+    this.selectedDetailItem.set(null);
+    this.previewDocument.set(null);
+  }
+
+  setPreviewDocument(doc: DocumentItem): void {
+    this.previewDocument.set(doc);
+  }
+
+  // --- MODAL AKSI OPERASIONAL ---
   openActionModal(item: LoanApplicationItem, actionType: string): void {
     this.selectedItem.set(item);
     this.currentActionType.set(actionType);

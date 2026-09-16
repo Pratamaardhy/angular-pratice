@@ -1,27 +1,16 @@
 <div class="p-2 font-['Inter'] space-y-5">
   <!-- ========================================================= -->
-  <!-- HALAMAN DAFTAR TABEL MARKETING (VIEW MODE TABLE)          -->
+  <!-- HALAMAN DAFTAR TABEL PENGAJUAN PINJAMAN (VIEW MODE TABLE) -->
   <!-- ========================================================= -->
   @if (viewMode() === 'table') {
-    <!-- Header Banner -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
         <div class="flex items-center gap-2">
-          <h2 class="text-3xl font-bold text-[#00236f] tracking-tight">Antrean Review Marketing</h2>
-          <span
-            class="bg-blue-100 text-[#00236f] text-xs px-2.5 py-0.5 rounded-full font-bold border border-blue-200"
-          >
-            Wilayah: {{ currentBranch() }}
-          </span>
+          <h2 class="text-3xl font-bold text-[#00236f] tracking-tight">Pengajuan Pinjaman</h2>
         </div>
-        <p class="text-xs text-[#444651] mt-1">
-          Verifikasi kelayakan dokumen dan opsi plafond pengajuan nasabah lokasi
-          {{ currentBranch() }}
-        </p>
       </div>
     </div>
 
-    <!-- Table Card UI -->
     <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 mb-8">
       <!-- Filter Bar -->
       <div
@@ -199,6 +188,18 @@
             }
           </div>
 
+          <!-- Filter Cabang -->
+          <select
+            [value]="selectedBranchFilter()"
+            (change)="selectedBranchFilter.set($any($event.target).value); onFilterChange()"
+            class="px-3 py-2 text-xs border border-[#c5c5d3] rounded-lg focus:outline-none focus:border-[#00236f] bg-white text-[#0b1c30]"
+          >
+            <option value="ALL">Semua Cabang</option>
+            @for (b of branches(); track b.branchCode) {
+              <option [value]="b.branchCode">{{ b.branchName }}</option>
+            }
+          </select>
+
           <!-- Filter Status -->
           <select
             [value]="selectedStatusFilter()"
@@ -207,7 +208,10 @@
           >
             <option value="ALL">Semua Status</option>
             <option value="SUBMITTED">SUBMITTED</option>
-            <option value="NEED_ADDITIONAL_DATA">NEED ADDITIONAL DATA</option>
+            <option value="REVIEWED">REVIEWED (MARKETING)</option>
+            <option value="APPROVED_BY_BM">APPROVED BY BM</option>
+            <option value="DISBURSEMENT_PROCESS">DISBURSEMENT PROCESS</option>
+            <option value="DISBURSED">DISBURSED</option>
           </select>
 
           <!-- Export Data Excel -->
@@ -222,7 +226,7 @@
         </div>
       </div>
 
-      <!-- Tabel Data Operasional (AKSI HANYA DETAIL MATA) -->
+      <!-- Tabel Utama -->
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
@@ -232,12 +236,12 @@
               <th class="pb-3">Cabang</th>
               <th class="pb-3">Nasabah</th>
               <th class="pb-3">Plafond Final</th>
-              <th class="pb-3">Status</th>
+              <th class="pb-3">Status Audit</th>
               <th class="pb-3 text-right pr-2">Aksi</th>
             </tr>
           </thead>
           <tbody class="text-sm text-[#0b1c30]">
-            @for (item of paginatedQueue(); track item.id; let i = $index) {
+            @for (item of paginatedApplications(); track item.id; let i = $index) {
               <tr class="border-b border-[#d3e4fe] hover:bg-[#f8f9ff] transition-colors">
                 <td class="py-3 pl-2 text-center text-xs font-bold text-slate-500">
                   {{ (currentPage() - 1) * pageSize() + i + 1 }}.
@@ -301,7 +305,6 @@
                   </span>
                 </td>
 
-                <!-- AKSI HANYA ADA TOMBOL DETAIL MATA -->
                 <td class="py-3 text-right pr-2">
                   <button
                     type="button"
@@ -316,7 +319,7 @@
             } @empty {
               <tr>
                 <td colspan="7" class="px-6 py-12 text-center text-slate-400 text-xs">
-                  Tidak ada antrean review pengajuan untuk Marketing.
+                  Tidak ada data pengajuan yang sesuai dengan kriteria filter.
                 </td>
               </tr>
             }
@@ -435,6 +438,7 @@
               </h4>
             </div>
 
+            <!-- GRID PRESISI 4 KOLOM -->
             <div
               class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-5 gap-x-6 text-xs leading-relaxed"
             >
@@ -483,16 +487,6 @@
                 <strong class="text-slate-900 font-semibold block">{{
                   selectedDetailItem()?.city
                 }}</strong>
-              </div>
-
-              <div class="lg:col-span-2">
-                <span class="text-slate-400 text-[11px] block mb-0.5">Alamat Domisili:</span>
-                <strong
-                  class="text-slate-900 font-semibold block truncate"
-                  [title]="selectedDetailItem()?.domicileAddress"
-                >
-                  {{ selectedDetailItem()?.domicileAddress }}
-                </strong>
               </div>
 
               <!-- BARIS 3 -->
@@ -552,13 +546,12 @@
                   selectedDetailItem()?.companyPhone
                 }}</strong>
               </div>
-            </div>
-
-            <div class="pt-2 border-t border-slate-100 text-xs">
-              <span class="text-slate-400 text-[11px] block mb-0.5">Alamat Perusahaan:</span>
-              <strong class="text-slate-900 font-medium block">{{
-                selectedDetailItem()?.companyAddress
-              }}</strong>
+              <div>
+                <span class="text-slate-400 text-[11px] block mb-0.5">Alamat Domisili</span>
+                <strong class="text-slate-900 font-medium block">{{
+                  selectedDetailItem()?.companyAddress
+                }}</strong>
+              </div>
             </div>
           </div>
 
@@ -651,7 +644,7 @@
 
               <div class="bg-blue-50/80 p-4 rounded-xl border border-blue-100 space-y-2 text-xs">
                 <div>
-                  <span class="text-slate-500 text-[10px]">Bank Penerima:</span>
+                  <span class="text-slate-500 text-[10px] block mb-0.5">Nama Bank:</span>
                   <strong class="text-lg font-mono font-bold text-slate-800 tracking-wider block">
                     {{ selectedDetailItem()?.bankName }}
                   </strong>
@@ -728,141 +721,16 @@
           </div>
         </div>
 
-        <!-- DETAIL FOOTER: TOMBOL MEMBUKA MODAL AKSI (REJECT, MINTA DOKUMEN TAMBAHAN, APPROVE) -->
-        <div
-          class="px-6 py-4 bg-slate-100 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3"
-        >
+        <!-- Detail Footer -->
+        <div class="px-6 py-4 bg-slate-100 border-t border-slate-200 flex justify-end">
           <button
             type="button"
             (click)="goToTablePage()"
-            class="px-5 py-2 bg-slate-300 hover:bg-slate-400 text-slate-800 text-xs font-semibold rounded-xl transition shadow-sm w-full sm:w-auto"
+            class="px-5 py-2 bg-slate-800 text-white text-xs font-semibold rounded-xl hover:bg-slate-900 transition shadow-sm"
           >
-            Kembali
-          </button>
-
-          <!-- AKSI MEMBUKA MODAL FORM -->
-          <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
-            <!-- Tombol Membuka Modal Reject -->
-            <button
-              type="button"
-              (click)="openActionModal('REJECT')"
-              class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow flex items-center gap-1.5"
-            >
-              <span class="material-symbols-outlined text-[18px]">cancel</span>
-              Reject
-            </button>
-
-            <!-- Tombol Membuka Modal Minta Dokumen Tambahan -->
-            <button
-              type="button"
-              (click)="openActionModal('REQUEST_ADDITIONAL_DATA')"
-              class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition shadow flex items-center gap-1.5"
-            >
-              <span class="material-symbols-outlined text-[18px]">edit_document</span>
-              Minta Dokumen Tambahan
-            </button>
-
-            <!-- Tombol Membuka Modal Approve -->
-            <button
-              type="button"
-              (click)="openActionModal('APPROVE')"
-              class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow flex items-center gap-1.5"
-            >
-              <span class="material-symbols-outlined text-[18px]">check_circle</span>
-              Approve
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- ========================================================= -->
-  <!-- MODAL ACTION FORM MARKETING (CATATAN / REKOMENDASI REVIEW) -->
-  <!-- ========================================================= -->
-  @if (isActionModalOpen()) {
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
-    >
-      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-          <h3 class="text-sm font-bold text-[#00236f] uppercase tracking-wider">
-            @if (currentAction() === 'APPROVE') {
-              Konfirmasi Approval Marketing
-            } @else if (currentAction() === 'REJECT') {
-              Konfirmasi Penolakan Pengajuan
-            } @else {
-              Permintaan Dokumen Tambahan
-            }
-          </h3>
-          <button
-            type="button"
-            (click)="closeActionModal()"
-            class="text-slate-400 hover:text-slate-600"
-          >
-            <span class="material-symbols-outlined text-[18px]">close</span>
+            Kembali ke Daftar Pengajuan
           </button>
         </div>
-
-        @if (selectedDetailItem(); as target) {
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs mb-4 space-y-1">
-            <div class="text-slate-500">
-              No. Pengajuan:
-              <strong class="text-[#00236f] font-bold">{{ target.loanApplicationNo }}</strong>
-            </div>
-            <div class="text-slate-500">
-              Nasabah: <strong class="text-slate-800">{{ target.customerName }}</strong>
-            </div>
-            <div class="text-slate-500">
-              Plafond Final:
-              <strong class="text-emerald-700 font-bold">{{
-                target.approvedAmount | currency: 'IDR' : 'symbol' : '1.0-0'
-              }}</strong>
-            </div>
-          </div>
-        }
-
-        <form [formGroup]="reviewForm" (ngSubmit)="submitReview()" class="space-y-4">
-          <div>
-            <label class="text-xs font-bold text-slate-700 block mb-1"
-              >Catatan / Rekomendasi Review *</label
-            >
-            <textarea
-              formControlName="notes"
-              rows="3"
-              placeholder="Masukkan catatan pertimbangan hasil review..."
-              class="w-full p-2.5 text-xs border border-slate-300 rounded-xl outline-none focus:border-[#00236f] focus:ring-2 focus:ring-blue-100"
-            ></textarea>
-            @if (reviewForm.get('notes')?.invalid && reviewForm.get('notes')?.touched) {
-              <span class="text-[10px] text-rose-600 block mt-1"
-                >Catatan wajib diisi minimal 5 karakter.</span
-              >
-            }
-          </div>
-
-          <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-            <button
-              type="button"
-              (click)="closeActionModal()"
-              class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-200 transition"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              [disabled]="isSubmitting()"
-              class="px-4 py-2 text-white text-xs font-bold rounded-xl transition shadow-sm"
-              [class.bg-emerald-600]="currentAction() === 'APPROVE'"
-              [class.hover:bg-emerald-700]="currentAction() === 'APPROVE'"
-              [class.bg-rose-600]="currentAction() === 'REJECT'"
-              [class.hover:bg-rose-700]="currentAction() === 'REJECT'"
-              [class.bg-amber-500]="currentAction() === 'REQUEST_ADDITIONAL_DATA'"
-              [class.hover:bg-amber-600]="currentAction() === 'REQUEST_ADDITIONAL_DATA'"
-            >
-              {{ isSubmitting() ? 'Memproses...' : 'Simpan & Lanjutkan' }}
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   }

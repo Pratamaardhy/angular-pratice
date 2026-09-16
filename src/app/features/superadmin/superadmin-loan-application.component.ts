@@ -1,14 +1,8 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 
-export interface DocumentItem {
+export interface SuperadminDocumentItem {
   id: number;
   documentType: string;
   documentName: string;
@@ -16,20 +10,20 @@ export interface DocumentItem {
   uploadedAt: string;
 }
 
-export interface MarketingLoanApplicationItem {
+export interface SuperadminLoanApplicationItem {
   id: number;
   loanApplicationNo: string;
   branchCode: string;
   branchName: string;
 
-  // Profil Data Diri Konsumen (16 Fields Grid 4x4)
+  // Profil Data Diri Konsumen (Ditambahkan: Province, City, DomicileAddress)
   customerName: string;
   customerNik: string;
   customerPhone: string;
   customerEmail: string;
-  province: string;
-  city: string;
-  domicileAddress: string;
+  province: string; // [BARU] Provinsi Domisili
+  city: string; // [BARU] Kota/Kabupaten Domisili
+  domicileAddress: string; // [BARU] Alamat Domisili Lengkap
   motherMaidenName: string;
   occupation: string;
   jobPosition: string;
@@ -56,22 +50,22 @@ export interface MarketingLoanApplicationItem {
   statusCode: string;
   statusName: string;
   createdAt: string;
-  documents: DocumentItem[];
+  documents: SuperadminDocumentItem[];
 }
 
 @Component({
-  selector: 'app-marketing-queue',
+  selector: 'app-superadmin-loan-application',
   standalone: true,
-  imports: [CurrencyPipe, DatePipe, FormsModule, ReactiveFormsModule],
-  templateUrl: './marketing.component.html',
+  imports: [CurrencyPipe, DatePipe, FormsModule],
+  templateUrl: './superadmin-loan-application.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MarketingQueueComponent {
-  // Mode Tampilan Halaman: 'table' atau 'detail' (Berdiri sendiri)
+export class SuperadminLoanApplicationComponent {
   readonly viewMode = signal<'table' | 'detail'>('table');
 
-  readonly currentBranch = signal('JAKARTA');
+  // Filter States
   readonly searchQuery = signal('');
+  readonly selectedBranchFilter = signal<string>('ALL');
   readonly selectedStatusFilter = signal<string>('ALL');
 
   // Dual Calendar Range Picker States
@@ -85,23 +79,25 @@ export class MarketingQueueComponent {
   readonly pageSize = signal<number>(5);
   readonly pageSizeOptions = signal<number[]>([5, 10, 20, 30, 50, 100]);
 
-  // Selected Detail Item & Document State
-  readonly selectedDetailItem = signal<MarketingLoanApplicationItem | null>(null);
-  readonly previewDocument = signal<DocumentItem | null>(null);
+  // Selected Detail Item & Preview State
+  readonly selectedDetailItem = signal<SuperadminLoanApplicationItem | null>(null);
+  readonly previewDocument = signal<SuperadminDocumentItem | null>(null);
 
-  // State Modal Form Action Keputusan
-  readonly isActionModalOpen = signal(false);
-  readonly currentAction = signal<'APPROVE' | 'REJECT' | 'REQUEST_ADDITIONAL_DATA' | null>(null);
-  readonly isSubmitting = signal(false);
+  // Master Cabang
+  readonly branches = signal([
+    { branchCode: 'JAKARTA', branchName: 'Jakarta Selatan & Pusat' },
+    { branchCode: 'BANDUNG', branchName: 'Bandung Kota' },
+    { branchCode: 'SURABAYA', branchName: 'Surabaya Pusat' },
+  ]);
 
-  readonly reviewForm: FormGroup;
-
-  readonly queueItems = signal<MarketingLoanApplicationItem[]>([
+  readonly applications = signal<SuperadminLoanApplicationItem[]>([
     {
-      id: 101,
+      id: 1,
       loanApplicationNo: 'APP-JKT-2026-001',
       branchCode: 'JAKARTA',
       branchName: 'Cabang Jakarta Selatan',
+
+      // Profil Data Diri Konsumen Dummy Lengkap dengan Provinsi, Kota, & Domisili
       customerName: 'Budi Santoso',
       customerNik: '3271012304920001',
       customerPhone: '081234567890',
@@ -119,6 +115,7 @@ export class MarketingQueueComponent {
       companyPhone: '021-55443322',
       companyAddress: 'Jl. Jend. Sudirman No. 45, Jakarta Selatan',
 
+      // Detail Pinjaman
       productName: 'Silver',
       tenorMonths: 3,
       maxPlafondLimit: 50000000,
@@ -126,58 +123,59 @@ export class MarketingQueueComponent {
       approvedAmount: 25000000,
       remainingLimit: 25000000,
 
+      // Bank & Logo
       bankName: 'BCA',
       bankLogoUrl: 'https://placehold.co/120x40/00236f/ffffff?text=BCA',
       accountNumber: '1234567890',
       accountHolderName: 'Budi Santoso',
-      statusCode: 'SUBMITTED',
-      statusName: 'SUBMITTED',
-      createdAt: '2026-09-01 09:00',
+      statusCode: 'APPROVED_BY_BM',
+      statusName: 'APPROVED BY BM',
+      createdAt: '2026-09-01',
       documents: [
         {
-          id: 1,
+          id: 101,
           documentType: 'Foto Selfie',
           documentName: 'Selfie_Budi.jpg',
           documentUrl: 'https://placehold.co/800x500/00236f/ffffff?text=Foto+Selfie+Budi',
           uploadedAt: '2026-09-01 08:45',
         },
         {
-          id: 2,
-          documentType: 'KTP Nasabah',
+          id: 102,
+          documentType: 'Foto KTP',
           documentName: 'KTP_Budi.jpg',
-          documentUrl: 'https://placehold.co/800x500/00236f/ffffff?text=KTP+Budi+Santoso',
+          documentUrl: 'https://placehold.co/800x500/00236f/ffffff?text=Foto+KTP+Budi',
           uploadedAt: '2026-09-01 08:50',
         },
         {
-          id: 3,
+          id: 103,
           documentType: 'Slip Gaji',
-          documentName: 'Slip_Gaji_Budi.pdf',
+          documentName: 'SlipGaji_Budi.pdf',
           documentUrl: 'https://placehold.co/800x500/00236f/ffffff?text=Slip+Gaji+Budi',
-          uploadedAt: '2026-09-01 08:52',
+          uploadedAt: '2026-09-01 08:55',
         },
       ],
     },
     {
-      id: 102,
-      loanApplicationNo: 'APP-JKT-2026-004',
-      branchCode: 'JAKARTA',
-      branchName: 'Cabang Jakarta Selatan',
-      customerName: 'Ahmad Fauzi',
-      customerNik: '3271019908910005',
-      customerPhone: '081388776655',
-      customerEmail: 'ahmad.fauzi@yahoo.com',
-      province: 'DKI Jakarta',
-      city: 'Jakarta Pusat',
-      domicileAddress: 'Jl. Kebon Sirih No. 10, Gambir',
-      motherMaidenName: 'Mariam',
+      id: 2,
+      loanApplicationNo: 'APP-BDG-2026-012',
+      branchCode: 'BANDUNG',
+      branchName: 'Cabang Bandung Kota',
+      customerName: 'Dewi Lestari',
+      customerNik: '3273014405930002',
+      customerPhone: '081987654321',
+      customerEmail: 'dewi.lestari@yahoo.com',
+      province: 'Jawa Barat',
+      city: 'Kota Bandung',
+      domicileAddress: 'Jl. Dago Asri No. 88, Kecamatan Coblong',
+      motherMaidenName: 'Kartini',
       occupation: 'Wiraswasta',
-      jobPosition: 'Owner Kuliner',
+      jobPosition: 'Pemilik Usaha',
       businessSector: 'Kuliner & Restoran',
-      companyName: 'Warteg Modern',
-      monthlyIncome: 22000000,
-      fundSource: 'Hasil Usaha Dagang',
-      companyPhone: '021-33221100',
-      companyAddress: 'Jl. Sabang No. 4, Jakarta Pusat',
+      companyName: 'Resto Sunda Nikmat',
+      monthlyIncome: 28000000,
+      fundSource: 'Hasil Usaha Restoran',
+      companyPhone: '022-4201234',
+      companyAddress: 'Jl. Riau No. 12, Bandung',
 
       productName: 'Silver',
       tenorMonths: 3,
@@ -188,22 +186,16 @@ export class MarketingQueueComponent {
 
       bankName: 'Mandiri',
       bankLogoUrl: 'https://placehold.co/120x40/003366/ffffff?text=Mandiri',
-      accountNumber: '9988776655',
-      accountHolderName: 'Ahmad Fauzi',
-      statusCode: 'NEED_ADDITIONAL_DATA',
-      statusName: 'NEED ADDITIONAL DATA',
-      createdAt: '2026-09-01 10:15',
+      accountNumber: '8877665544',
+      accountHolderName: 'Dewi Lestari',
+      statusCode: 'SUBMITTED',
+      statusName: 'SUBMITTED',
+      createdAt: '2026-09-01',
       documents: [],
     },
   ]);
 
-  constructor(private fb: FormBuilder) {
-    this.reviewForm = this.fb.nonNullable.group({
-      notes: ['', [Validators.required, Validators.minLength(5)]],
-    });
-  }
-
-  // Calendar Computations
+  // Computed Date Grid
   readonly leftCalendarMonth = computed(() => this.currentCalendarDate());
   readonly rightCalendarMonth = computed(() => {
     const d = new Date(this.currentCalendarDate());
@@ -214,115 +206,45 @@ export class MarketingQueueComponent {
   readonly leftDaysGrid = computed(() => this.generateDaysGrid(this.leftCalendarMonth()));
   readonly rightDaysGrid = computed(() => this.generateDaysGrid(this.rightCalendarMonth()));
 
-  // Filter Computations
-  readonly filteredQueue = computed(() => {
+  // Filter Computed Data
+  readonly filteredApplications = computed(() => {
     const search = this.searchQuery().toLowerCase();
-    const filter = this.selectedStatusFilter();
+    const branch = this.selectedBranchFilter();
+    const status = this.selectedStatusFilter();
     const start = this.selectedStartDate();
     const end = this.selectedEndDate();
 
-    return this.queueItems().filter((item) => {
-      const matchesBranch = item.branchCode === this.currentBranch();
+    return this.applications().filter((item) => {
       const matchesSearch =
         item.loanApplicationNo.toLowerCase().includes(search) ||
         item.customerName.toLowerCase().includes(search) ||
         item.customerNik.includes(search);
-      const matchesStatus = filter === 'ALL' || item.statusCode === filter;
+
+      const matchesBranch = branch === 'ALL' || item.branchCode === branch;
+      const matchesStatus = status === 'ALL' || item.statusCode === status;
 
       let matchesDate = true;
       const itemDate = new Date(item.createdAt);
       if (start && itemDate < this.stripTime(start)) matchesDate = false;
       if (end && itemDate > this.stripTime(end)) matchesDate = false;
 
-      return matchesBranch && matchesSearch && matchesStatus && matchesDate;
+      return matchesSearch && matchesBranch && matchesStatus && matchesDate;
     });
   });
 
   // Pagination Computations
-  readonly totalItems = computed(() => this.filteredQueue().length);
+  readonly totalItems = computed(() => this.filteredApplications().length);
   readonly totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()) || 1);
 
-  readonly paginatedQueue = computed(() => {
+  readonly paginatedApplications = computed(() => {
     const page = this.currentPage();
     const size = this.pageSize();
     const startIndex = (page - 1) * size;
-    return this.filteredQueue().slice(startIndex, startIndex + size);
+    return this.filteredApplications().slice(startIndex, startIndex + size);
   });
 
-  // Navigation Handlers
-  goToDetailPage(item: MarketingLoanApplicationItem): void {
-    this.selectedDetailItem.set(item);
-    this.previewDocument.set(item.documents[0] ?? null);
-    this.viewMode.set('detail');
-  }
-
-  goToTablePage(): void {
-    this.viewMode.set('table');
-    this.selectedDetailItem.set(null);
-    this.previewDocument.set(null);
-  }
-
-  // Modal Action Handlers (Dipanggil dari Tombol di Halaman Detail)
-  openActionModal(action: 'APPROVE' | 'REJECT' | 'REQUEST_ADDITIONAL_DATA'): void {
-    this.currentAction.set(action);
-    this.reviewForm.reset();
-    this.isActionModalOpen.set(true);
-  }
-
-  closeActionModal(): void {
-    this.isActionModalOpen.set(false);
-    this.currentAction.set(null);
-  }
-
-  submitReview(): void {
-    if (this.reviewForm.invalid) {
-      this.reviewForm.markAllAsTouched();
-      return;
-    }
-
-    const item = this.selectedDetailItem();
-    if (!item) return;
-
-    this.isSubmitting.set(true);
-    const action = this.currentAction();
-
-    setTimeout(() => {
-      if (action === 'APPROVE') {
-        this.queueItems.update((apps) =>
-          apps.map((a) =>
-            a.id === item.id
-              ? { ...a, statusCode: 'REVIEWED', statusName: 'REVIEWED (MARKETING)' }
-              : a,
-          ),
-        );
-        alert('Pengajuan berhasil disetujui dan diteruskan ke Branch Manager!');
-      } else if (action === 'REJECT') {
-        this.queueItems.update((apps) =>
-          apps.map((a) =>
-            a.id === item.id ? { ...a, statusCode: 'REJECTED', statusName: 'REJECTED' } : a,
-          ),
-        );
-        alert('Pengajuan telah DITOLAK.');
-      } else if (action === 'REQUEST_ADDITIONAL_DATA') {
-        this.queueItems.update((apps) =>
-          apps.map((a) =>
-            a.id === item.id
-              ? { ...a, statusCode: 'NEED_ADDITIONAL_DATA', statusName: 'NEED ADDITIONAL DATA' }
-              : a,
-          ),
-        );
-        alert('Pengajuan dikembalikan ke konsumen untuk perbaikan berkas.');
-      }
-
-      this.isSubmitting.set(false);
-      this.closeActionModal();
-      this.goToTablePage();
-    }, 500);
-  }
-
-  // Export Data CSV
   exportData(): void {
-    const dataToExport = this.filteredQueue();
+    const dataToExport = this.filteredApplications();
     if (dataToExport.length === 0) {
       alert('Tidak ada data yang dapat diexport berdasarkan filter periode saat ini.');
       return;
@@ -387,14 +309,25 @@ export class MarketingQueueComponent {
     link.setAttribute('href', url);
     link.setAttribute(
       'download',
-      `Marketing_Pengajuan_${new Date().toISOString().slice(0, 10)}.csv`,
+      `Pengajuan_Pinjaman_${new Date().toISOString().slice(0, 10)}.csv`,
     );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   }
 
-  // Calendar Helpers
+  goToDetailPage(item: SuperadminLoanApplicationItem): void {
+    this.selectedDetailItem.set(item);
+    this.previewDocument.set(item.documents[0] ?? null);
+    this.viewMode.set('detail');
+  }
+
+  goToTablePage(): void {
+    this.viewMode.set('table');
+    this.selectedDetailItem.set(null);
+    this.previewDocument.set(null);
+  }
+
   toggleDatePicker(): void {
     this.isDatePickerOpen.update((v) => !v);
   }
@@ -499,7 +432,7 @@ export class MarketingQueueComponent {
     }
   }
 
-  setPreviewDocument(doc: DocumentItem): void {
+  setPreviewDocument(doc: SuperadminDocumentItem): void {
     this.previewDocument.set(doc);
   }
 }

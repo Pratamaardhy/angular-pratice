@@ -1,104 +1,92 @@
-<div>
-  <!-- Header Section -->
-  <div class="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-    <div>
-      <h2 class="text-3xl font-bold text-[#00236f] tracking-tight">Overview</h2>
+<div class="p-2 font-['Inter'] space-y-6">
+  
+  <!-- Header Banner -->
+  <div class="bg-white border border-[#c5c5d3]/50 rounded-2xl p-5 shadow-sm">
+    <div class="flex items-center gap-2">
+      <h2 class="text-2xl font-bold text-[#00236f] tracking-tight">Dashboard Pengajuan Pinjaman</h2>
     </div>
   </div>
 
-  <!-- Metrics Grid -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 flex flex-col gap-2">
-      <p class="text-xs text-[#444651] uppercase font-medium">Total Active Loans</p>
-      <h3 class="text-2xl font-bold text-[#0b1c30]">1,248</h3>
-    </div>
-    <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 flex flex-col gap-2">
-      <p class="text-xs text-[#444651] uppercase font-medium">Total Disbursed</p>
-      <h3 class="text-2xl font-bold text-[#0b1c30]">Rp 4.5B</h3>
-    </div>
-    <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 flex flex-col gap-2">
-      <p class="text-xs text-[#444651] uppercase font-medium">Pending Reviews</p>
-      <h3 class="text-2xl font-bold text-[#0b1c30]">86</h3>
-    </div>
-    <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 flex flex-col gap-2">
-      <p class="text-xs text-[#444651] uppercase font-medium">Total Users</p>
-      <h3 class="text-2xl font-bold text-[#0b1c30]">15,420</h3>
-    </div>
+  <!-- Kartu Metrik Ringkasan Terpadu (8 Kartu Grid) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+    @for (m of metrics(); track m.title) {
+      <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+        <div class="space-y-1">
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">{{ m.title }}</span>
+          <strong class="text-xl font-bold text-slate-900 block">{{ m.value }}</strong>
+          <span class="text-[10px] text-slate-500 block">{{ m.subtext }}</span>
+        </div>
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center border {{ m.colorClass }}">
+          <span class="material-symbols-outlined text-[20px]">{{ m.icon }}</span>
+        </div>
+      </div>
+    }
   </div>
 
-  <!-- Recent Activity List dengan Computed Filter -->
-  <div class="bg-white border border-[#c5c5d3]/50 rounded-xl p-4 elevation-1 mb-8">
-    <div
-      class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-[#c5c5d3]/30 gap-4"
-    >
-      <h3 class="text-lg font-bold text-[#0b1c30]">Recent Loan Applications</h3>
-
-      <!-- Tombol Trigger Computed Filter (Menggunakan isFilteredByPending()) -->
-      <button
-        (click)="toggleFilter()"
-        [ngClass]="
-          isFilteredByPending() ? 'bg-[#00236f] text-white' : 'bg-[#dce9ff] text-[#0b1c30]'
-        "
-        class="px-4 py-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 border border-[#c5c5d3]"
-      >
-        <span class="material-symbols-outlined text-[18px]">filter_list</span>
-        {{ isFilteredByPending() ? 'Showing: Pending Only' : 'Filter: Show Pending' }}
-      </button>
+  <!-- Tabel Aktivitas Transaksi Pengajuan Terakhir -->
+  <div class="bg-white border border-[#c5c5d3]/50 rounded-2xl p-5 shadow-sm space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div>
+        <h3 class="font-bold text-sm text-[#00236f] uppercase tracking-wider">
+          Aktivitas Transaksi Pengajuan Terakhir
+        </h3>
+        <p class="text-xs text-slate-400 mt-0.5">Daftar pembaruan status transaksi pengajuan terbaru dari seluruh cabang</p>
+      </div>
     </div>
 
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="text-xs text-[#444651] border-b border-[#d3e4fe] font-medium">
-            <th class="pb-3 pl-2">Applicant ID</th>
-            <th class="pb-3">Amount</th>
-            <th class="pb-3">Category</th>
-            <th class="pb-3">Date</th>
-            <th class="pb-3">Status</th>
-            <th class="pb-3 text-right pr-2">Action</th>
+            <th class="pb-3 pl-2">No. Pengajuan</th>
+            <th class="pb-3">Nasabah</th>
+            <th class="pb-3">Cabang</th>
+            <th class="pb-3">Plafond Final</th>
+            <th class="pb-3">Status Pengajuan</th>
+            <th class="pb-3 text-right pr-2">Tanggal / Waktu</th>
           </tr>
         </thead>
         <tbody class="text-sm text-[#0b1c30]">
-          <!-- 4. Menggunakan Computed Variable sebagai fungsi: filteredLoans() -->
-          <tr
-            *ngFor="let loan of filteredLoans()"
-            class="border-b border-[#d3e4fe] hover:bg-[#f8f9ff] transition-colors group"
-          >
-            <td class="py-3 pl-2">
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-8 h-8 rounded-full bg-[#dce9ff] flex items-center justify-center text-[#444651] text-xs font-bold"
-                >
-                  {{ loan.initials }}
-                </div>
-                <span class="font-medium text-[#00236f]">{{ loan.id }}</span>
-              </div>
-            </td>
-            <td class="py-3 font-medium">{{ loan.amount }}</td>
-            <td class="py-3 text-[#444651]">{{ loan.category }}</td>
-            <td class="py-3 text-[#444651]">{{ loan.date }}</td>
-            <td class="py-3">
-              <span
-                class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#6e2d00]/10 text-[#6e2d00] border border-[#6e2d00]/20"
-              >
-                {{ loan.status }}
-              </span>
-            </td>
-            <td class="py-3 text-right pr-2">
-              <button class="p-1 text-[#444651] hover:text-[#00236f]">
-                <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
-              </button>
-            </td>
-          </tr>
+          @for (act of recentActivities(); track act.id) {
+            <tr class="border-b border-[#d3e4fe] hover:bg-[#f8f9ff] transition-colors">
+              <td class="py-3 pl-2 font-bold text-[#00236f] text-xs">
+                {{ act.loanNo }}
+              </td>
 
-          <!-- Pesan jika data kosong setelah difilter -->
-          <tr *ngIf="filteredLoans().length === 0">
-            <td colspan="6" class="text-center py-8 text-[#444651]">
-              Tidak ada data dengan status Pending.
-            </td>
-          </tr>
+              <td class="py-3 font-medium text-xs">
+                {{ act.customerName }}
+              </td>
+
+              <td class="py-3">
+                <span class="inline-flex items-center px-2 py-0.5 rounded font-bold bg-slate-100 text-slate-800 border border-slate-200 text-[11px]">
+                  {{ act.branchName }}
+                </span>
+              </td>
+
+              <td class="py-3 font-bold text-emerald-700 text-xs">
+                {{ act.amount | currency: 'IDR' : 'symbol' : '1.0-0' }}
+              </td>
+
+              <td class="py-3">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border {{ act.statusBadgeClass }}">
+                  {{ act.status }}
+                </span>
+              </td>
+
+              <td class="py-3 text-right pr-2 text-xs text-slate-400">
+                {{ act.createdAt }}
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="px-6 py-8 text-center text-slate-400 text-xs">
+                Belum ada aktivitas transaksi pengajuan.
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
   </div>
+
 </div>

@@ -45,6 +45,46 @@ export const routes: Routes = [
         path: 'rbac',
         loadComponent: () => import('./features/rbac/rbac.component').then((m) => m.RbacComponent),
       },
+
+      // ---------------------------------------------------------------------
+      // ROUTE MODUL RBAC DINAMIS (MENU, ROLE, ACCESS MATRIX)
+      // ---------------------------------------------------------------------
+      {
+        path: 'master-menu',
+        loadComponent: () =>
+          import('./features/rbac/master-menu/master-menu.component').then(
+            (m) => m.MasterMenuComponent,
+          ),
+      },
+      {
+        path: 'master-role',
+        loadComponent: () =>
+          import('./features/rbac/master-role/master-role.component').then(
+            (m) => m.MasterRoleComponent,
+          ),
+      },
+      {
+        path: 'master-access',
+        loadComponent: () =>
+          import('./features/rbac/master-access/master-access.component').then(
+            (m) => m.MasterAccessComponent,
+          ),
+      },
+
+      // ---------------------------------------------------------------------
+      // ROUTE MODUL MASTER PLAFOND & LIMIT
+      // ---------------------------------------------------------------------
+      {
+        path: 'master-plafond',
+        loadComponent: () =>
+          import('./features/master-plafond/master-plafond.component').then(
+            (m) => m.MasterPlafondComponent,
+          ),
+      },
+
+      // ---------------------------------------------------------------------
+      // ROUTE WORKFLOW REVIEW & DISBURSEMENT
+      // ---------------------------------------------------------------------
       {
         path: 'marketing',
         loadComponent: () =>
@@ -61,6 +101,13 @@ export const routes: Routes = [
         path: 'back-office',
         loadComponent: () =>
           import('./features/back-office/back-office.component').then((m) => m.BackOfficeComponent),
+      },
+      {
+        path: 'pengajuan',
+        loadComponent: () =>
+          import('./features/superadmin/superadmin-loan-application.component').then(
+            (m) => m.SuperadminLoanApplicationComponent,
+          ),
       },
     ],
   },
